@@ -1,0 +1,13 @@
+@"
+# IntelliJ / JetBrains
+.idea/
+*.iml
+out/
+
+# Java build artifacts
+*.class
+
+# OS junk
+Thumbs.db
+.DS_Store
+"@ | Out-File -Encoding utf8 .gitignore
