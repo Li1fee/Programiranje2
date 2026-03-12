@@ -3,8 +3,8 @@ public class DN04 {
         String sporocilo = args[0];
         StringBuilder pretvorbaSporocila = new StringBuilder();
 
-        for (int i = 0; i < sporocilo.length() / 8; i++) {
-            String delSporocila = sporocilo.substring(8 * i, 8 * (i + 1));
+        for (int i = 0; i < sporocilo.length(); i+=8) {
+            String delSporocila = sporocilo.substring(i, i + 8);
             char crka = (char) Integer.parseInt(delSporocila, 2);
             pretvorbaSporocila.append(crka);
         }
