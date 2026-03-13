@@ -7,8 +7,8 @@ public class Kviz2 {
         System.out.println(Arrays.toString(range(420, 9001, 420)));
         rotiraj(new int[]{9, 8, 7, 6, 5, 4, 3, 2, 1}, 5);
         System.out.println(Arrays.toString(duplikati(new int[]{1, 5, 8, 56, 3, 9, 1, 43, 1, 2, 56, 12, 1, 3})));
-//        System.out.printf("%.3f\n", koren(9, 3));
-//        System.out.printf("%.2f\n", koren(10, 2));
+        System.out.printf("%.3f\n", koren(9, 3));
+        System.out.printf("%.2f\n", koren(10, 2));
         System.out.printf("%.5f\n", koren(15, 5));
         System.out.printf("%.2f\n", koren(4, 2));
         System.out.println(binarnoSestej("10011010010", "1000011100001"));
