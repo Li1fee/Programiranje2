@@ -10,6 +10,5 @@ public class Vaje3 {
         Znaki.izpisi64bit(1746410238858002085L);
         Znaki.izpisi64bit(-36525672788885761L);
         Znaki.izpisi64bit("Če programiram, še bolj uživam!");
-        Znaki.izpisi16bit("PPd ");
     }
 }

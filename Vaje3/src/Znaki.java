@@ -69,7 +69,7 @@ public class Znaki {
             0b1100011101101010010100100101001001000010010000100100001011100111L,
             0b1100011101100010010100100100101001000110010000100100001011100111L,
             0b0011110001000010100000011000000110000001100000010100001000111100L,
-            0b1111111001000001010000010100000101111110010000000100000011100000L,                                                                 // TODO: dodaj znak P
+            0b1111111001000001010000010100000101111110010000000100000011100000L,
             0b0111111010000001100000011000000110000001100010010111111000001000L,
             0b1111111001000001010000010100000101111110010001000100001011100111L,
             0b0111110110000011100000010111110000000010100000011100000110111110L,
@@ -92,7 +92,7 @@ public class Znaki {
             0b0111111010000001100000011000000101111111000000011000000101111110L,
             0b0010001000011100001111100100000110000000100000000100000100111110L,
             0b0010001000011100011111111000000001111110000000010000000101111110L,
-            0b00010001000011100011111110000001000000100000010000001000001111111L,
+            0b0010001000011100111111110000000100000110000110000110000011111111L,
             0b0000000000000000000000000000000000000000000110000001100000010000L,
             0b0000000000000000000000000000000000000000000000000001100000011000L,
             0b0011111001000001010000010000001000000100000010000000000000001000L,
@@ -117,7 +117,7 @@ public class Znaki {
                 for (int x = 0; x < 4; x++) {
                     int maska = 1 << 15 - i * 4 - x;
                     int prizganBit = trenutenZnak & maska;
-                    System.out.print(prizganBit == maska ? crnaPika : belaPika);
+                    System.out.print(prizganBit == maska ? belaPika : crnaPika);
                 }
                 System.out.print(crnaPika);
             }
@@ -141,7 +141,7 @@ public class Znaki {
             long maska = 1L << i;
             long prizganBit = kodaZnaka & maska;
 
-            System.out.print(prizganBit == maska ? crnaPika : belaPika);
+            System.out.print(prizganBit == maska ? belaPika : crnaPika);
 
             if (i % 8 == 0) System.out.println();
         }
@@ -153,7 +153,7 @@ public class Znaki {
                 for (int x = 0; x < 8; x++) {
                     long maska = 1L << 63 - i * 8 - x;
                     long prizganBit = trenutenZnak & maska;
-                    System.out.print(prizganBit == maska ? crnaPika : belaPika);
+                    System.out.print(prizganBit == maska ? belaPika : crnaPika);
                 }
                 System.out.print(crnaPika);
             }
