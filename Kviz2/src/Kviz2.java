@@ -242,7 +242,7 @@ public class Kviz2 {
             niz1 += " ".repeat(dolzinaNiza2 - dolzinaNiza1);
         }
 
-        for (int i = 0; i < niz1.length(); i++) {
+        for (int i = 0; i < Math.max(dolzinaNiza1, dolzinaNiza2); i++) {
             res.append(niz1.charAt(i));
             res.append(niz2.charAt(i));
         }
@@ -440,9 +440,8 @@ public class Kviz2 {
 
         if (str.startsWith(sub)) {
             return 1 + strStej(str.substring(1), sub);
-        } else {
-            return strStej(str.substring(1), sub);
         }
+        return strStej(str.substring(1), sub);
     }
 
     public static int zrcalnoMaxZaporedje(int[] x) {
