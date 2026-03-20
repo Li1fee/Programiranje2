@@ -30,10 +30,23 @@ public class DN05 {
             }
             izpisRezultat(rezultat);
             return;
+            
         } else if (args.length == 3 && "poravnaj".equals(args[0])) {
             char[][] tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = poravnajVrstice(tabela, args[2]);
+                izpisRezultat(rezultat);
+            }
+            return;
+            
+        } else if (args.length == 6 && "slika".equals(args[0])) {
+            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            if (tabela != null) {
+                char[][] rezultat = vstaviSliko(tabela,
+                        Integer.parseInt(args[2]),
+                        Integer.parseInt(args[3]),
+                        Integer.parseInt(args[4]),
+                        Integer.parseInt(args[5]));
                 izpisRezultat(rezultat);
             }
             return;
@@ -193,19 +206,19 @@ public class DN05 {
     static  char[][] poravnajVrstice(char[][] tabela, String nacin) {
         int dolzinaTabele = tabela.length;
         int dolzinaVrstice = tabela[0].length;
-        char[][] porvananaTabela = new char[dolzinaTabele][];
+        char[][] poravnanaTabela = new char[dolzinaTabele][];
 
         switch (nacin) {
             case "levo" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    porvananaTabela[i] = (besede + ("_").repeat(dolzinaVrstice - besede.length())).toCharArray();
+                    poravnanaTabela[i] = (besede + ("_").repeat(dolzinaVrstice - besede.length())).toCharArray();
                 }
             }
             case "desno" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    porvananaTabela[i] = (("_").repeat(dolzinaVrstice - besede.length()) + besede).toCharArray();
+                    poravnanaTabela[i] = (("_").repeat(dolzinaVrstice - besede.length()) + besede).toCharArray();
                 }
             }
             case "sredina" -> {
@@ -214,39 +227,19 @@ public class DN05 {
                     double polovica = (dolzinaVrstice - besede.length()) / 2.0;
 
                     besede = ("_").repeat((int) polovica) + besede + ("_").repeat((int) Math.ceil(polovica));
-                    porvananaTabela[i] = besede.toCharArray();
+                    poravnanaTabela[i] = besede.toCharArray();
                 }
             }
             case "obojestransko" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
-                    String besede = besedeIzVrstice(tabela[i]);
-                    int steviloBesed = 1;
+                    String[] vseBesede = posamezneBesedeIzVrstice(tabela[i]);
+                    int steviloVsehBesed = vseBesede.length;
 
-                    for (char c : besede.toCharArray()) {
-                        if (c == '_') {
-                            steviloBesed++;
-                        }
+                    int steviloProstora = dolzinaVrstice;
+                    for (String beseda: vseBesede) {
+                        steviloProstora -= beseda.length();
                     }
 
-                    String[] splitedBesede = new String[steviloBesed];
-                    StringBuilder beseda = new StringBuilder();
-                    int dolzinaBesed = 0;
-                    int steviloVsehBesed = splitedBesede.length;
-
-                    for (char c : besede.toCharArray()) {
-                        if (c == '_') {
-                            splitedBesede[steviloVsehBesed - steviloBesed--] = beseda.toString();
-                            dolzinaBesed += beseda.length();
-                            beseda.setLength(0);
-                        } else {
-                            beseda.append(c);
-                        }
-                    }
-                    splitedBesede[steviloVsehBesed - 1] = beseda.toString();
-                    dolzinaBesed += beseda.length();
-
-
-                    int steviloProstora = dolzinaVrstice - dolzinaBesed;
                     double steviloPresledkov = (Math.max(1.00, steviloVsehBesed - 1.00));
 
                     double steviloZnakov = steviloProstora / steviloPresledkov;
@@ -254,14 +247,14 @@ public class DN05 {
 
                     StringBuilder res = new StringBuilder();
                     for (int j = 0; j < steviloVsehBesed; j++) {
-                        res.append(splitedBesede[j]).append(("_").repeat(j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
+                        res.append(vseBesede[j]).append(("_").repeat(j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
                     }
 
-                    porvananaTabela[i] = res.toString().toCharArray();
+                    poravnanaTabela[i] = res.toString().toCharArray();
                 }
             }
         }
-        return porvananaTabela;
+        return poravnanaTabela;
     }
 
     static String besedeIzVrstice(char[] vrstica) {
@@ -277,5 +270,99 @@ public class DN05 {
             return besedilo.substring(0, besedilo.length() - 1);
         }
         return besedilo.toString();
+    }
+
+
+    static String[] posamezneBesedeIzVrstice(char[] vrstica) {
+        String skupajBesede = besedeIzVrstice(vrstica);
+        int steviloBesed = 1;
+
+        for (char c : skupajBesede.toCharArray()) {
+            if (c == '_') {
+                steviloBesed++;
+            }
+        }
+
+        String[] splitedBesede = new String[steviloBesed];
+        StringBuilder beseda = new StringBuilder();
+        int steviloVsehBesed = splitedBesede.length;
+
+        for (char c : skupajBesede.toCharArray()) {
+            if (c == '_') {
+                splitedBesede[steviloVsehBesed - steviloBesed--] = beseda.toString();
+                beseda.setLength(0);
+            } else {
+                beseda.append(c);
+            }
+        }
+        splitedBesede[steviloVsehBesed - 1] = beseda.toString();
+
+        return splitedBesede;
+    }
+
+    static char[][] vstaviSliko(char[][] tabela, int x, int y, int s, int v) {
+        int dolzinaTabele = tabela.length;
+        int dolzinaVrstice = tabela[0].length;
+        char[][] slikaTabela = tabela;
+
+        String[] ostaleBesede = new String[dolzinaTabele * dolzinaVrstice]; // max besed
+        int ostalePointer = 0;
+
+        for (int i = y; i < dolzinaTabele; i++) {
+            String besede = new String(tabela[i]);
+            StringBuilder vrstica = new StringBuilder();
+            int sirinaVrstice = 0;
+
+            StringBuilder trenutnaBeseda = new StringBuilder();
+
+            int pos = 0;
+
+            for (int j = 0; j < dolzinaVrstice; j++) {
+                if (j >= x && j < x + s && i < y + v) {
+                    if (j == x) {
+                        vrstica.append(("_").repeat(x - vrstica.length()));
+                    }
+                    if (besede.charAt(j) != '_') {
+                        trenutnaBeseda.append(besede.charAt(j));
+                    } else if (!trenutnaBeseda.isEmpty()) {
+                        ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
+                        trenutnaBeseda.setLength(0);
+                    }
+                    vrstica.append("#");
+                } else if (ostalePointer != 0) {
+                    pos = Math.max(j, pos);
+                    if ((pos + ostaleBesede[ostalePointer - 1].length() <= dolzinaVrstice && j > y + x) || ostaleBesede[ostalePointer - 1].length() + pos < x) {
+                        pos += ostaleBesede[ostalePointer - 1].length();
+                        vrstica.append(ostaleBesede[--ostalePointer]);
+                    }
+                    if (besede.charAt(j) != '_') {
+                        trenutnaBeseda.append(besede.charAt(j));
+                    }
+                } else if (besede.charAt(j) == '_') {
+                    if (trenutnaBeseda.length() + pos > dolzinaVrstice) {
+                        ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
+                        trenutnaBeseda.setLength(0);
+                        continue;
+                    }
+                    vrstica.append(trenutnaBeseda);
+                    vrstica.append('_');
+                    trenutnaBeseda.setLength(0);
+                } else {
+
+                    trenutnaBeseda.append(besede.charAt(j));
+                }
+            }
+
+            if (!trenutnaBeseda.isEmpty()) {
+                vrstica.append(trenutnaBeseda);
+                ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
+            }
+
+            vrstica.append(("_").repeat(dolzinaVrstice - vrstica.length()));
+
+            slikaTabela[i] = vrstica.toString().toCharArray();
+        }
+
+        return slikaTabela;
     }
 }
