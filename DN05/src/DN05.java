@@ -5,35 +5,42 @@ import java.util.Scanner;
 
 public class DN05 {
     public static void main(String[] args) {
-        if (args.length != 2 || !"branje".equals(args[0])) {
-            System.out.println("Napaka: neustrezni argumenti.");
-            return;
-        }
+        if (args.length == 2 && "branje".equals(args[0])) {
+            String imeDatoteke = args[1];
 
-        String imeDatoteke = args[1];
-
-        String tipDatoteke;
-        try (Scanner sc = new Scanner(new File(imeDatoteke))) {
-            if (!sc.hasNextLine()) {
-                System.out.println("Napaka: nepravilen format datoteke.");
+            String tipDatoteke;
+            try (Scanner sc = new Scanner(new File(imeDatoteke))) {
+                if (!sc.hasNextLine()) {
+                    System.out.println("Napaka: nepravilen format datoteke.");
+                    return;
+                }
+                tipDatoteke = sc.nextLine();
+            } catch (FileNotFoundException e) {
+                System.out.println("Napaka: datoteka ne obstaja.");
                 return;
             }
-            tipDatoteke = sc.nextLine();
-        } catch (FileNotFoundException e) {
-            System.out.println("Napaka: datoteka ne obstaja.");
+            char[][] rezultat;
+            if (tipDatoteke.equals("UREJENO")) {
+                rezultat = preberiUrejenoDatoteko(imeDatoteke);
+            } else if (tipDatoteke.equals("NEUREJENO")) {
+                rezultat = preberiNeurejenoDatoteko(imeDatoteke);
+            } else {
+                System.out.println("Napačna vrsta datoteke.");
+                return;
+            }
+            izpisRezultat(rezultat);
             return;
-        }
-        char[][] rezultat;
-        if (tipDatoteke.equals("UREJENO")) {
-            rezultat = preberiUrejenoDatoteko(imeDatoteke);
-        } else if (tipDatoteke.equals("NEUREJENO")) {
-            rezultat = preberiNeurejenoDatoteko(imeDatoteke);
-        } else {
-            System.out.println("Napačna vrsta datoteke.");
+        } else if (args.length == 3 && "poravnaj".equals(args[0])) {
+            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            if (tabela != null) {
+                char[][] rezultat = poravnajVrstice(tabela, args[2]);
+                izpisRezultat(rezultat);
+            }
             return;
         }
 
-        izpisRezultat(rezultat);
+        System.out.println("Napaka: neustrezni argumenti.");
+        return;
     }
 
     static void izpisRezultat(char[][] rezultat) {
@@ -76,13 +83,13 @@ public class DN05 {
 
             for (int i = 0; i < visinaStrani; i++) {
                 if (!sc.hasNextLine()) {
-                    System.out.println("Napaka: nepravilne dimenzije strani.!");
+                    System.out.println("Napaka: nepravilne dimenzije strani.");
                     return null;
                 }
 
                 String vrsticaStrani = sc.nextLine();
                 if (vrsticaStrani.length() != sirinaStrani) {
-                    System.out.println("Napaka: nepravilne dimenzije strani.!");
+                    System.out.println("Napaka: nepravilne dimenzije strani.");
                     return null;
                 }
                 tabelaStrani[i] = vrsticaStrani.toCharArray();
@@ -181,5 +188,94 @@ public class DN05 {
             System.out.println("Napaka: datoteka ne obstaja.");
             return null;
         }
+    }
+
+    static  char[][] poravnajVrstice(char[][] tabela, String nacin) {
+        int dolzinaTabele = tabela.length;
+        int dolzinaVrstice = tabela[0].length;
+        char[][] porvananaTabela = new char[dolzinaTabele][];
+
+        switch (nacin) {
+            case "levo" -> {
+                for (int i = 0; i < dolzinaTabele; i++) {
+                    String besede = besedeIzVrstice(tabela[i]);
+                    porvananaTabela[i] = (besede + ("_").repeat(dolzinaVrstice - besede.length())).toCharArray();
+                }
+            }
+            case "desno" -> {
+                for (int i = 0; i < dolzinaTabele; i++) {
+                    String besede = besedeIzVrstice(tabela[i]);
+                    porvananaTabela[i] = (("_").repeat(dolzinaVrstice - besede.length()) + besede).toCharArray();
+                }
+            }
+            case "sredina" -> {
+                for (int i = 0; i < dolzinaTabele; i++) {
+                    String besede = besedeIzVrstice(tabela[i]);
+                    double polovica = (dolzinaVrstice - besede.length()) / 2.0;
+
+                    besede = ("_").repeat((int) polovica) + besede + ("_").repeat((int) Math.ceil(polovica));
+                    porvananaTabela[i] = besede.toCharArray();
+                }
+            }
+            case "obojestransko" -> {
+                for (int i = 0; i < dolzinaTabele; i++) {
+                    String besede = besedeIzVrstice(tabela[i]);
+                    int steviloBesed = 1;
+
+                    for (char c : besede.toCharArray()) {
+                        if (c == '_') {
+                            steviloBesed++;
+                        }
+                    }
+
+                    String[] splitedBesede = new String[steviloBesed];
+                    StringBuilder beseda = new StringBuilder();
+                    int dolzinaBesed = 0;
+                    int steviloVsehBesed = splitedBesede.length;
+
+                    for (char c : besede.toCharArray()) {
+                        if (c == '_') {
+                            splitedBesede[steviloVsehBesed - steviloBesed--] = beseda.toString();
+                            dolzinaBesed += beseda.length();
+                            beseda.setLength(0);
+                        } else {
+                            beseda.append(c);
+                        }
+                    }
+                    splitedBesede[steviloVsehBesed - 1] = beseda.toString();
+                    dolzinaBesed += beseda.length();
+
+
+                    int steviloProstora = dolzinaVrstice - dolzinaBesed;
+                    double steviloPresledkov = (Math.max(1.00, steviloVsehBesed - 1.00));
+
+                    double steviloZnakov = steviloProstora / steviloPresledkov;
+                    int dodatniZnak = steviloProstora % (int) steviloPresledkov;
+
+                    StringBuilder res = new StringBuilder();
+                    for (int j = 0; j < steviloVsehBesed; j++) {
+                        res.append(splitedBesede[j]).append(("_").repeat(j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
+                    }
+
+                    porvananaTabela[i] = res.toString().toCharArray();
+                }
+            }
+        }
+        return porvananaTabela;
+    }
+
+    static String besedeIzVrstice(char[] vrstica) {
+        StringBuilder besedilo = new StringBuilder();
+        int dolzinaVrstice = vrstica.length;
+        int tabelaPointer = 0;
+        for (char c : vrstica) {
+            if (c != '_' || (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) != '_')) {
+                besedilo.append(c);
+            }
+        }
+        if (besedilo.charAt(besedilo.length() - 1) == '_') {
+            return besedilo.substring(0, besedilo.length() - 1);
+        }
+        return besedilo.toString();
     }
 }
