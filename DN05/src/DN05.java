@@ -268,7 +268,7 @@ public class DN05 {
                 besedilo.append(c);
             }
         }
-        if (besedilo.charAt(besedilo.length() - 1) == '_') {
+        if (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) == '_') {
             return besedilo.substring(0, besedilo.length() - 1);
         }
         return besedilo.toString();
@@ -302,108 +302,136 @@ public class DN05 {
         return splitedBesede;
     }
 
-    static char[][] vstaviSliko(char[][] tabela, int x, int y, int s, int v) {
-        int dolzinaTabele = tabela.length;
+    static char[][] vstaviSliko(char[][] tabela, int x, int y, int sirinaSlike, int visinaSlike) {
+        int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
 
-        ArrayList<String> ostaleBesede = new ArrayList<>();
-        int ostalePointer = 0;
+        ArrayList<String> preostaleBesede = new ArrayList<>();
+        int indeksPreostalih = 0;
 
-        for (int i = y; i < dolzinaTabele; i++) {
-            String[] posamezneBesede = posamezneBesedeIzVrstice(tabela[i]);
-            StringBuilder vrstica = new StringBuilder();
+        for (int vrsticaIndex = y; vrsticaIndex < steviloVrstic; vrsticaIndex++) {
+            String[] besede = posamezneBesedeIzVrstice(tabela[vrsticaIndex]);
+            StringBuilder novaVrstica = new StringBuilder();
 
-            int[] pozicijeBesed = new int[posamezneBesede.length + 1];
-            pozicijeBesed[posamezneBesede.length] = -1;
-            int pos = 0;
+            int[] zacetkiBesed = new int[besede.length + 1];
+            zacetkiBesed[besede.length] = -1;
 
-            String tabela2 = "_" + new String(tabela[i]);
-            for (int c = 1; c < tabela2.length(); c++) {
-                if (tabela2.charAt(c - 1) == '_' && tabela2.charAt(c) != '_') {
-                    pozicijeBesed[pos++] = c - 1;
+            int indeksBesede = 0;
+
+            String vrsticaZMejo = "_" + new String(tabela[vrsticaIndex]);
+            for (int i = 1; i < vrsticaZMejo.length(); i++) {
+                if (vrsticaZMejo.charAt(i - 1) == '_' && vrsticaZMejo.charAt(i) != '_') {
+                    zacetkiBesed[indeksBesede++] = i - 1;
                 }
             }
 
-            pos = 0;
+            indeksBesede = 0;
 
-            for (int j = 0; j < dolzinaVrstice; j++) {
-                if (j >= x && j < x + s && i < y + v) {
-                    vrstica.append("#");
-                    if (j == pozicijeBesed[pos]) {
-                        ostaleBesede.add(posamezneBesede[pos++]);
+            for (int stolpec = 0; stolpec < dolzinaVrstice; stolpec++) {
+                boolean jeVSlici = stolpec >= x && stolpec < x + sirinaSlike && vrsticaIndex < y + visinaSlike;
+                boolean jeDesnoOdSlike = stolpec >= x + sirinaSlike || vrsticaIndex >= y + visinaSlike;
+
+                if (jeVSlici) {
+                    novaVrstica.append("#");
+
+                    if (stolpec == zacetkiBesed[indeksBesede]) {
+                        preostaleBesede.add(besede[indeksBesede++]);
                     }
+
                 } else {
-                    if (ostalePointer == ostaleBesede.size()) {
-                        if (j == pozicijeBesed[pos]) {
-                            if (posamezneBesede[pos].length() + j <= x) {
-                                j += posamezneBesede[pos].length() - 1;
-                                vrstica.append(posamezneBesede[pos++]);
-                                if (j + 1 < x) {
-                                    vrstica.append("_");
-                                    j++;
+                    if (indeksPreostalih == preostaleBesede.size()) {
+
+                        if (stolpec == zacetkiBesed[indeksBesede]) {
+                            int dolzinaBesede = besede[indeksBesede].length();
+
+                            if (dolzinaBesede + stolpec <= x && vrsticaIndex < y + visinaSlike) {
+                                stolpec += dolzinaBesede - 1;
+                                novaVrstica.append(besede[indeksBesede++]);
+
+                                if (stolpec + 1 < x) {
+                                    novaVrstica.append("_");
+                                    stolpec++;
                                 }
-                            } else if ((j >= x + s || i >= y + v) && posamezneBesede[pos].length() + j <= dolzinaVrstice) {
-                                j += posamezneBesede[pos].length() - 1;
-                                vrstica.append(posamezneBesede[pos++]);
-                                if (j + 1 < dolzinaVrstice) {
-                                    vrstica.append("_");
-                                    j++;
+
+                            } else if (jeDesnoOdSlike && dolzinaBesede + stolpec <= dolzinaVrstice) {
+                                stolpec += dolzinaBesede - 1;
+                                novaVrstica.append(besede[indeksBesede++]);
+
+                                if (stolpec + 1 < dolzinaVrstice) {
+                                    novaVrstica.append("_");
+                                    stolpec++;
                                 }
+
                             } else {
-                                ostaleBesede.add(posamezneBesede[pos++]);
-                                int steviloAppenda = j < x ? x - j : dolzinaVrstice - j;
-                                vrstica.append("_".repeat(steviloAppenda));
-                                j += steviloAppenda - 1;
-                            }
-                        }
-                        else {
-                            vrstica.append("_");
-                        }
-                    } else {
-                        if (ostaleBesede.get(ostalePointer).length() + j <= x) {
-                            for (int st: pozicijeBesed) {
-                                if (st >= j &&  st < ostaleBesede.get(ostalePointer).length() + j) {
-                                    ostaleBesede.add(posamezneBesede[pos++]);
-                                }
-                            }
-                            j += ostaleBesede.get(ostalePointer).length() - 1;
-                            vrstica.append(ostaleBesede.get(ostalePointer++));
-                            if (j + 1 < x) {
-                                if (j + 1 == pozicijeBesed[pos]) {
-                                    ostaleBesede.add(posamezneBesede[pos++]);
-                                }
-                                vrstica.append("_");
-                                j++;
+                                preostaleBesede.add(besede[indeksBesede++]);
+
+                                int kolikoDodati = stolpec < x ? x - stolpec : dolzinaVrstice - stolpec;
+                                novaVrstica.append("_".repeat(kolikoDodati));
+                                stolpec += kolikoDodati - 1;
                             }
 
-                        } else if ((j >= x + s || i >= y + v) && ostaleBesede.get(ostalePointer).length() + j <= dolzinaVrstice) {
-                            for (int st: pozicijeBesed) {
-                                if (st >= j &&  st < ostaleBesede.get(ostalePointer).length() + j) {
-                                    ostaleBesede.add(posamezneBesede[pos++]);
-                                }
-                            }
-                            j += ostaleBesede.get(ostalePointer).length() - 1;
-                            vrstica.append(ostaleBesede.get(ostalePointer++));
-                            if (j + 1 < dolzinaVrstice) {
-                                if (j + 1 == pozicijeBesed[pos]) {
-                                    ostaleBesede.add(posamezneBesede[pos++]);
-                                }
-                                vrstica.append("_");
-                                j++;
-                            }
                         } else {
-                            if (j == pozicijeBesed[pos]) {
-                                ostaleBesede.add(posamezneBesede[pos++]);
+                            novaVrstica.append("_");
+                        }
+
+                    } else {
+                        String trenutnaBeseda = preostaleBesede.get(indeksPreostalih);
+                        int dolzinaBesede = trenutnaBeseda.length();
+
+                        if (dolzinaBesede + stolpec <= x && vrsticaIndex < y + visinaSlike) {
+
+                            for (int poz : zacetkiBesed) {
+                                if (poz >= stolpec && poz < dolzinaBesede + stolpec) {
+                                    preostaleBesede.add(besede[indeksBesede++]);
+                                }
                             }
-                            vrstica.append("_");
+
+                            stolpec += dolzinaBesede - 1;
+                            novaVrstica.append(trenutnaBeseda);
+                            indeksPreostalih++;
+
+                            if (stolpec + 1 < x) {
+                                if (stolpec + 1 == zacetkiBesed[indeksBesede]) {
+                                    preostaleBesede.add(besede[indeksBesede++]);
+                                }
+                                novaVrstica.append("_");
+                                stolpec++;
+                            }
+
+                        } else if (jeDesnoOdSlike && dolzinaBesede + stolpec <= dolzinaVrstice) {
+
+                            for (int poz : zacetkiBesed) {
+                                if (poz >= stolpec && poz < dolzinaBesede + stolpec) {
+                                    preostaleBesede.add(besede[indeksBesede++]);
+                                }
+                            }
+
+                            stolpec += dolzinaBesede - 1;
+                            novaVrstica.append(trenutnaBeseda);
+                            indeksPreostalih++;
+
+                            if (stolpec + 1 < dolzinaVrstice) {
+                                if (stolpec + 1 == zacetkiBesed[indeksBesede]) {
+                                    preostaleBesede.add(besede[indeksBesede++]);
+                                }
+                                novaVrstica.append("_");
+                                stolpec++;
+                            }
+
+                        } else {
+                            if (stolpec == zacetkiBesed[indeksBesede]) {
+                                preostaleBesede.add(besede[indeksBesede++]);
+                            }
+                            novaVrstica.append("_");
                         }
                     }
                 }
             }
-            tabela[i] = vrstica.toString().toCharArray();
+
+            tabela[vrsticaIndex] = novaVrstica.toString().toCharArray();
         }
 
-        if (ostaleBesede.size() != ostalePointer) {
+        if (preostaleBesede.size() != indeksPreostalih) {
             System.out.println("Napaka: premajhne dimenzije strani.");
             return null;
         }
