@@ -277,6 +277,7 @@ public class DN05 {
 
     static String[] posamezneBesedeIzVrstice(char[] vrstica) {
         String skupajBesede = besedeIzVrstice(vrstica);
+        if (skupajBesede.isEmpty()) return new String[0];
         int steviloBesed = 1;
 
         for (char c : skupajBesede.toCharArray()) {
@@ -301,7 +302,6 @@ public class DN05 {
 
         return splitedBesede;
     }
-
     static char[][] vstaviSliko(char[][] tabela, int x, int y, int sirinaSlike, int visinaSlike) {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
@@ -439,3 +439,4 @@ public class DN05 {
         return tabela;
     }
 }
+
