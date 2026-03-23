@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -303,66 +305,109 @@ public class DN05 {
     static char[][] vstaviSliko(char[][] tabela, int x, int y, int s, int v) {
         int dolzinaTabele = tabela.length;
         int dolzinaVrstice = tabela[0].length;
-        char[][] slikaTabela = tabela;
 
-        String[] ostaleBesede = new String[dolzinaTabele * dolzinaVrstice]; // max besed
+        ArrayList<String> ostaleBesede = new ArrayList<>();
         int ostalePointer = 0;
 
         for (int i = y; i < dolzinaTabele; i++) {
-            String besede = new String(tabela[i]);
+            String[] posamezneBesede = posamezneBesedeIzVrstice(tabela[i]);
             StringBuilder vrstica = new StringBuilder();
-            int sirinaVrstice = 0;
 
-            StringBuilder trenutnaBeseda = new StringBuilder();
-
+            int[] pozicijeBesed = new int[posamezneBesede.length + 1];
+            pozicijeBesed[posamezneBesede.length] = -1;
             int pos = 0;
 
-            for (int j = 0; j < dolzinaVrstice; j++) {
-                if (j >= x && j < x + s && i < y + v) {
-                    if (j == x) {
-                        vrstica.append(("_").repeat(x - vrstica.length()));
-                    }
-                    if (besede.charAt(j) != '_') {
-                        trenutnaBeseda.append(besede.charAt(j));
-                    } else if (!trenutnaBeseda.isEmpty()) {
-                        ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
-                        trenutnaBeseda.setLength(0);
-                    }
-                    vrstica.append("#");
-                } else if (ostalePointer != 0) {
-                    pos = Math.max(j, pos);
-                    if ((pos + ostaleBesede[ostalePointer - 1].length() <= dolzinaVrstice && j > y + x) || ostaleBesede[ostalePointer - 1].length() + pos < x) {
-                        pos += ostaleBesede[ostalePointer - 1].length();
-                        vrstica.append(ostaleBesede[--ostalePointer]);
-                    }
-                    if (besede.charAt(j) != '_') {
-                        trenutnaBeseda.append(besede.charAt(j));
-                    }
-                } else if (besede.charAt(j) == '_') {
-                    if (trenutnaBeseda.length() + pos > dolzinaVrstice) {
-                        ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
-                        trenutnaBeseda.setLength(0);
-                        continue;
-                    }
-                    vrstica.append(trenutnaBeseda);
-                    vrstica.append('_');
-                    trenutnaBeseda.setLength(0);
-                } else {
-
-                    trenutnaBeseda.append(besede.charAt(j));
+            String tabela2 = "_" + new String(tabela[i]);
+            for (int c = 1; c < tabela2.length(); c++) {
+                if (tabela2.charAt(c - 1) == '_' && tabela2.charAt(c) != '_') {
+                    pozicijeBesed[pos++] = c - 1;
                 }
             }
 
-            if (!trenutnaBeseda.isEmpty()) {
-                vrstica.append(trenutnaBeseda);
-                ostaleBesede[ostalePointer++] = trenutnaBeseda.toString();
+            pos = 0;
+
+            for (int j = 0; j < dolzinaVrstice; j++) {
+                if (j >= x && j < x + s && i < y + v) {
+                    vrstica.append("#");
+                    if (j == pozicijeBesed[pos]) {
+                        ostaleBesede.add(posamezneBesede[pos++]);
+                    }
+                } else {
+                    if (ostalePointer == ostaleBesede.size()) {
+                        if (j == pozicijeBesed[pos]) {
+                            if (posamezneBesede[pos].length() + j <= x) {
+                                j += posamezneBesede[pos].length() - 1;
+                                vrstica.append(posamezneBesede[pos++]);
+                                if (j + 1 < x) {
+                                    vrstica.append("_");
+                                    j++;
+                                }
+                            } else if ((j >= x + s || i >= y + v) && posamezneBesede[pos].length() + j <= dolzinaVrstice) {
+                                j += posamezneBesede[pos].length() - 1;
+                                vrstica.append(posamezneBesede[pos++]);
+                                if (j + 1 < dolzinaVrstice) {
+                                    vrstica.append("_");
+                                    j++;
+                                }
+                            } else {
+                                ostaleBesede.add(posamezneBesede[pos++]);
+                                int steviloAppenda = j < x ? x - j : dolzinaVrstice - j;
+                                vrstica.append("_".repeat(steviloAppenda));
+                                j += steviloAppenda - 1;
+                            }
+                        }
+                        else {
+                            vrstica.append("_");
+                        }
+                    } else {
+                        if (ostaleBesede.get(ostalePointer).length() + j <= x) {
+                            for (int st: pozicijeBesed) {
+                                if (st >= j &&  st < ostaleBesede.get(ostalePointer).length() + j) {
+                                    ostaleBesede.add(posamezneBesede[pos++]);
+                                }
+                            }
+                            j += ostaleBesede.get(ostalePointer).length() - 1;
+                            vrstica.append(ostaleBesede.get(ostalePointer++));
+                            if (j + 1 < x) {
+                                if (j + 1 == pozicijeBesed[pos]) {
+                                    ostaleBesede.add(posamezneBesede[pos++]);
+                                }
+                                vrstica.append("_");
+                                j++;
+                            }
+
+                        } else if ((j >= x + s || i >= y + v) && ostaleBesede.get(ostalePointer).length() + j <= dolzinaVrstice) {
+                            for (int st: pozicijeBesed) {
+                                if (st >= j &&  st < ostaleBesede.get(ostalePointer).length() + j) {
+                                    ostaleBesede.add(posamezneBesede[pos++]);
+                                }
+                            }
+                            j += ostaleBesede.get(ostalePointer).length() - 1;
+                            vrstica.append(ostaleBesede.get(ostalePointer++));
+                            if (j + 1 < dolzinaVrstice) {
+                                if (j + 1 == pozicijeBesed[pos]) {
+                                    ostaleBesede.add(posamezneBesede[pos++]);
+                                }
+                                vrstica.append("_");
+                                j++;
+                            }
+                        } else {
+                            if (j == pozicijeBesed[pos]) {
+                                ostaleBesede.add(posamezneBesede[pos++]);
+                            }
+                            vrstica.append("_");
+                        }
+                    }
+                }
             }
-
-            vrstica.append(("_").repeat(dolzinaVrstice - vrstica.length()));
-
-            slikaTabela[i] = vrstica.toString().toCharArray();
+            tabela[i] = vrstica.toString().toCharArray();
         }
 
-        return slikaTabela;
+        if (ostaleBesede.size() != ostalePointer) {
+            System.out.println("Napaka: premajhne dimenzije strani.");
+            return null;
+        }
+
+        return tabela;
     }
 }
