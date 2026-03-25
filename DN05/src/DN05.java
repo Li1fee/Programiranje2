@@ -503,19 +503,14 @@ public class DN05 {
                 boolean premik = premaknjeneIndex != premaknjeneBesede.size();
                 boolean pregled = false;
                 for (int j = 0; j < besede.length; j++) {
-                    if (besede[j].equals(stara)) {
+                    if (besede[j].equals(stara) && !premik) {
                         if (pos + nova.length() >= dolzinaVrstice) {
                             System.out.println("Napaka: premajhne dimenzije strani.");
                             return null;
                         }
-                        if (!premik) {
-                            vrstica.append("_".repeat(zacetkiBesed[j] - pos))
-                                    .append(nova);
-                            pos = zacetkiBesed[j] + dolzinaNoveBesede;
-                        } else {
-                            premaknjeneBesede.add(nova);
-                            a += dolzinaNoveBesede + (a == 0 ? 0 : 1);
-                        }
+                        vrstica.append("_".repeat(zacetkiBesed[j] - pos))
+                                .append(nova);
+                        pos = zacetkiBesed[j] + dolzinaNoveBesede;
 
                         pregled = false;
 
@@ -535,9 +530,11 @@ public class DN05 {
                                         a += besede[n].length() + (a == 0 ? 0 : 1);
                                     }
                                     j = besede.length;
-                                }
-                                else {
-                                    j = n;
+                                } else if (j == n) {
+                                    j--;
+                                    break;
+                                } else {
+                                    j = n - 1;
                                     break;
                                 }
                             }
@@ -546,7 +543,7 @@ public class DN05 {
 
                         for (int x = premaknjeneIndex; x < premaknjeneBesede.size(); x++) {
                             String trenutnaBeseda = premaknjeneBesede.get(premaknjeneIndex);
-                            if (pos + trenutnaBeseda.length() + (pos == 0 ? 0 : 1) < dolzinaVrstice) {
+                            if (pos + trenutnaBeseda.length() + (pos == 0 ? 0 : 1) <= dolzinaVrstice) {
                                 vrstica.append("_".repeat(pos == 0 ? 0 : 1))
                                         .append(trenutnaBeseda);
                                 pos += trenutnaBeseda.length() + (pos == 0 ? 0 : 1);
