@@ -1,12 +1,11 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class DN05 {
     public static void main(String[] args) {
+        // System.out.println(Arrays.toString(args));
         if (args.length == 2 && "branje".equals(args[0])) {
             String imeDatoteke = args[1];
 
@@ -48,12 +47,32 @@ public class DN05 {
                         Integer.parseInt(args[2]),
                         Integer.parseInt(args[3]),
                         Integer.parseInt(args[4]),
-                        Integer.parseInt(args[5]));
+                        Integer.parseInt(args[5])
+                );
                 izpisRezultat(rezultat);
             }
             return;
-        }
 
+        } else if (args.length == 4 && "zamenjaj".equals(args[0])) {
+            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            if (tabela != null) {
+                char[][] rezultat = zamenjajBesedo(tabela,
+                    args[2],
+                    args[3]
+                );
+                izpisRezultat(rezultat);
+            }
+            return;
+
+        }
+//        else if (args.length == 2 && "navpicno".equals(args[1])) {
+//            char[][] tabela = preberiUrejenoDatoteko(args[0]);
+//            if (tabela != null) {
+//                char[][]rezultat = navpicnoBesedilo(tabela);
+//                izpisRezultat(rezultat);
+//            }
+//            return;
+//        }
         System.out.println("Napaka: neustrezni argumenti.");
         return;
     }
@@ -438,5 +457,161 @@ public class DN05 {
 
         return tabela;
     }
+
+    static char[][] zamenjajBesedo(char[][] tabela, String stara, String nova) {
+        int steviloVrstic = tabela.length;
+        int dolzinaVrstice = tabela[0].length;
+        int dolzinaStareBesede = stara.length();
+        int dolzinaNoveBesede = nova.length();
+        boolean vecjaNovaBeseda = dolzinaNoveBesede > dolzinaStareBesede;
+
+
+        ArrayList<String> premaknjeneBesede = new ArrayList<>();
+        int premaknjeneIndex = 0;
+
+        int a = 0;
+
+        for (int i = 0; i < steviloVrstic; i++) {
+            StringBuilder vrstica = new StringBuilder();
+            String[] besede = posamezneBesedeIzVrstice(tabela[i]);
+            int pos = 0;
+
+            int[] zacetkiBesed = new int[besede.length];
+            int indeksBesede = 0;
+
+            String vrsticaZMejo = "_" + new String(tabela[i]);
+            for (int n = 1; n < vrsticaZMejo.length(); n++) {
+                if (vrsticaZMejo.charAt(n - 1) == '_' && vrsticaZMejo.charAt(n) != '_') {
+                    zacetkiBesed[indeksBesede++] = n - 1;
+                }
+            }
+
+            if (!vecjaNovaBeseda) {
+                for (int j = 0; j < besede.length; j++) {
+                    if (besede[j].equals(stara)) {
+                        vrstica.append("_".repeat(zacetkiBesed[j] - pos))
+                                .append(nova)
+                                .append("_".repeat(dolzinaStareBesede - dolzinaNoveBesede));
+                        pos = zacetkiBesed[j] + dolzinaStareBesede;
+                    } else {
+                        vrstica.append("_".repeat(zacetkiBesed[j] - pos))
+                                .append(besede[j]);
+                        pos = zacetkiBesed[j] + besede[j].length();
+                    }
+                }
+                vrstica.append("_".repeat(dolzinaVrstice - pos));
+            } else {
+                boolean premik = premaknjeneIndex != premaknjeneBesede.size() && !premaknjeneBesede.isEmpty();
+                boolean pregled = false;
+                for (int j = 0; j < besede.length; j++) {
+                    if (besede[j].equals(stara)) {
+                        if (pos + nova.length() >= dolzinaVrstice) {
+                            System.out.println("Napaka: premajhne dimenzije strani.");
+                            return null;
+                        }
+                        if (premik && j != 0) { // pomeni da imamo zaporedne spreminjanja
+                            vrstica.append("_");
+                            pos++;
+                        }
+                        vrstica.append("_".repeat(Math.max(zacetkiBesed[j] - pos, 0))) // !!!!!!!!!!!!!!!!!!!!!!!! odstrani Math.max
+                                .append(nova);
+                        pos = zacetkiBesed[j] + dolzinaNoveBesede;
+                        if (j != besede.length - 1) {
+                            premik = pos + 1 >= zacetkiBesed[j + 1];
+                        }
+                    } else if (premik) {
+                        if (!pregled) {
+                            int dodatnaDolzina = pos + 1;
+                            int b = a;
+                            for (int n = j; n < besede.length; n++) {
+                                if (b + dodatnaDolzina >= zacetkiBesed[n]) {
+                                    dodatnaDolzina += besede[n].length() + 1;
+                                    premaknjeneBesede.add(besede[n]);
+                                    a += besede[n].length() + 1;
+                                }
+                            }
+                            pregled = true;
+                        }
+
+                        for (int x = premaknjeneIndex; x < premaknjeneBesede.size(); x++) {
+                            String trenutnaBeseda = premaknjeneBesede.get(premaknjeneIndex);
+                            if (pos + trenutnaBeseda.length() + (pos == 0 ? 0 : 1) <= dolzinaVrstice) {
+                                vrstica.append("_".repeat(pos == 0 ? 0 : 1))
+                                        .append(trenutnaBeseda);
+                                pos += trenutnaBeseda.length();
+                                a -= trenutnaBeseda.length() - 1;
+                                premaknjeneIndex++;
+                            }
+                        }
+                    } else {
+                        vrstica.append("_".repeat(zacetkiBesed[j] - pos))
+                                .append(besede[j]);
+                        pos = zacetkiBesed[j] + besede[j].length();
+                    }
+                }
+                vrstica.append("_".repeat(Math.max(0, dolzinaVrstice - vrstica.length()))); // !!!!!!!!!!!!!!!!!!!!!!!! odstrani Math.max
+            }
+            tabela[i] = vrstica.toString().toCharArray();
+        }
+        return tabela;
+    }
+
+
+
+
+    static char[][] navpicnoBesedilo(char[][] tabela) {
+        int steviloVrstic = tabela.length;
+        int dolzinaVrstice = tabela[0].length;
+        char[][] res = new char[dolzinaVrstice][];
+        ArrayList<Integer> prostaMesta = new ArrayList<>();
+
+
+        for (int i = 0; i < dolzinaVrstice; i++) {
+            StringBuilder vrstica = new StringBuilder();
+            for (int j = 0; j < steviloVrstic; j++) {
+                vrstica.append(tabela[j][i])
+                        .append(j != steviloVrstic - 1 ? "_" : "");
+
+            }
+            res[i] = vrstica.toString().toCharArray();
+        }
+
+        for (int i = 0; i < res[0].length; i++) {
+            for (int j = 0; j < res.length; j++) {
+                if (res[j][i] != '_') {
+                    break;
+                } else if (res[j][Math.max(0, i - 1)] != '_' && res[j][Math.min(res[0].length - 1, i + 1)] != '_') {
+                    break;
+                } else if (!prostaMesta.isEmpty() && prostaMesta.getLast() == i - 1) {
+                    for (int x = 0; x < prostaMesta.size(); x++) {
+                        if (res[j][prostaMesta.get(prostaMesta.size() - x - 1)] != '_') {
+                            j = res.length;
+                            break;
+                        }
+                    }
+                }
+                else if (j == res.length - 1) {
+                    prostaMesta.add(i);
+                }
+            }
+        }
+
+        izpisRezultat(res);
+        System.out.println(prostaMesta);
+        char[][] trueRes = new char[res.length][];
+
+        for (int i = 0; i < res.length; i++) {
+            StringBuilder vrstica = new StringBuilder();
+            for (int j = 0; j < res[i].length; j++) {
+                if (!prostaMesta.contains(j)) {
+                    vrstica.append(res[i][j]);
+                }
+            }
+            trueRes[i] = vrstica.toString().toCharArray();
+        }
+
+        return trueRes;
+    }
 }
 
+// pregled zakaj lahko bypassaš limit na vrstico, zakaj mora biti kdaj max uporabljen, pozabljanje besed

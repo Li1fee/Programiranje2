@@ -1,7 +1,7 @@
 UREJENO
 19x6
 Osnovni_urejevalnik
-besedil_omogoča____
+besedil_omogoca____
 poravnavo_vrstic_na
 levo_______________
 __________ali_desno

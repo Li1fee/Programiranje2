@@ -1,3 +1,17 @@
 NEUREJENO
 19x6
 Osnovni urejevalnik besedil omogoča poravnavo vrstic na levo ali desno stran.
+
+A____D__
+____C___
+__B___F_
+_______G
+________
+_____E__
+
+A_____D____
+____C______
+__B_____F__
+__________G
+___________
+______E____
