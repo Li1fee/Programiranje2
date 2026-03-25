@@ -5,7 +5,6 @@ import java.util.*;
 
 public class DN05 {
     public static void main(String[] args) {
-        // System.out.println(Arrays.toString(args));
         if (args.length == 2 && "branje".equals(args[0])) {
             String imeDatoteke = args[1];
 
@@ -65,14 +64,14 @@ public class DN05 {
             return;
 
         }
-//        else if (args.length == 2 && "navpicno".equals(args[1])) {
-//            char[][] tabela = preberiUrejenoDatoteko(args[0]);
-//            if (tabela != null) {
-//                char[][]rezultat = navpicnoBesedilo(tabela);
-//                izpisRezultat(rezultat);
-//            }
-//            return;
-//        }
+        else if (args.length == 2 && "navpicno".equals(args[1])) {
+            char[][] tabela = preberiUrejenoDatoteko(args[0]);
+            if (tabela != null) {
+                char[][]rezultat = navpicnoBesedilo(tabela);
+                izpisRezultat(rezultat);
+            }
+            return;
+        }
         System.out.println("Napaka: neustrezni argumenti.");
         return;
     }
@@ -501,7 +500,7 @@ public class DN05 {
                 }
                 vrstica.append("_".repeat(dolzinaVrstice - pos));
             } else {
-                boolean premik = premaknjeneIndex != premaknjeneBesede.size() && !premaknjeneBesede.isEmpty();
+                boolean premik = premaknjeneIndex != premaknjeneBesede.size();
                 boolean pregled = false;
                 for (int j = 0; j < besede.length; j++) {
                     if (besede[j].equals(stara)) {
@@ -509,25 +508,37 @@ public class DN05 {
                             System.out.println("Napaka: premajhne dimenzije strani.");
                             return null;
                         }
-                        if (premik && j != 0) { // pomeni da imamo zaporedne spreminjanja
-                            vrstica.append("_");
-                            pos++;
+                        if (!premik) {
+                            vrstica.append("_".repeat(zacetkiBesed[j] - pos))
+                                    .append(nova);
+                            pos = zacetkiBesed[j] + dolzinaNoveBesede;
+                        } else {
+                            premaknjeneBesede.add(nova);
+                            a += dolzinaNoveBesede + (a == 0 ? 0 : 1);
                         }
-                        vrstica.append("_".repeat(Math.max(zacetkiBesed[j] - pos, 0))) // !!!!!!!!!!!!!!!!!!!!!!!! odstrani Math.max
-                                .append(nova);
-                        pos = zacetkiBesed[j] + dolzinaNoveBesede;
-                        if (j != besede.length - 1) {
-                            premik = pos + 1 >= zacetkiBesed[j + 1];
+
+                        pregled = false;
+
+                        if (j != besede.length - 1 && zacetkiBesed[j + 1] <= pos) {
+                            premik = true;
                         }
+
                     } else if (premik) {
                         if (!pregled) {
-                            int dodatnaDolzina = pos + 1;
-                            int b = a;
                             for (int n = j; n < besede.length; n++) {
-                                if (b + dodatnaDolzina >= zacetkiBesed[n]) {
-                                    dodatnaDolzina += besede[n].length() + 1;
-                                    premaknjeneBesede.add(besede[n]);
-                                    a += besede[n].length() + 1;
+                                if (a + pos >= zacetkiBesed[n]) {
+                                    if (besede[n].equals(stara)) {
+                                        premaknjeneBesede.add(nova);
+                                        a += dolzinaNoveBesede + (a == 0 ? 0 : 1);
+                                    } else {
+                                        premaknjeneBesede.add(besede[n]);
+                                        a += besede[n].length() + (a == 0 ? 0 : 1);
+                                    }
+                                    j = besede.length;
+                                }
+                                else {
+                                    j = n;
+                                    break;
                                 }
                             }
                             pregled = true;
@@ -535,24 +546,31 @@ public class DN05 {
 
                         for (int x = premaknjeneIndex; x < premaknjeneBesede.size(); x++) {
                             String trenutnaBeseda = premaknjeneBesede.get(premaknjeneIndex);
-                            if (pos + trenutnaBeseda.length() + (pos == 0 ? 0 : 1) <= dolzinaVrstice) {
+                            if (pos + trenutnaBeseda.length() + (pos == 0 ? 0 : 1) < dolzinaVrstice) {
                                 vrstica.append("_".repeat(pos == 0 ? 0 : 1))
                                         .append(trenutnaBeseda);
-                                pos += trenutnaBeseda.length();
-                                a -= trenutnaBeseda.length() - 1;
+                                pos += trenutnaBeseda.length() + (pos == 0 ? 0 : 1);
+                                a -= trenutnaBeseda.length() + 1;
+                                a = Math.max(a, 0);
                                 premaknjeneIndex++;
                             }
                         }
+                        premik = a != 0;
                     } else {
                         vrstica.append("_".repeat(zacetkiBesed[j] - pos))
                                 .append(besede[j]);
                         pos = zacetkiBesed[j] + besede[j].length();
                     }
                 }
-                vrstica.append("_".repeat(Math.max(0, dolzinaVrstice - vrstica.length()))); // !!!!!!!!!!!!!!!!!!!!!!!! odstrani Math.max
+                vrstica.append("_".repeat(dolzinaVrstice - vrstica.length()));
             }
             tabela[i] = vrstica.toString().toCharArray();
         }
+        if (premaknjeneIndex != premaknjeneBesede.size()) {
+            System.out.println("Napaka: premajhne dimenzije strani.");
+            return null;
+        }
+
         return tabela;
     }
 
@@ -576,28 +594,18 @@ public class DN05 {
             res[i] = vrstica.toString().toCharArray();
         }
 
-        for (int i = 0; i < res[0].length; i++) {
+        for (int i = 1; i < res[0].length; i+=2) {
             for (int j = 0; j < res.length; j++) {
                 if (res[j][i] != '_') {
                     break;
-                } else if (res[j][Math.max(0, i - 1)] != '_' && res[j][Math.min(res[0].length - 1, i + 1)] != '_') {
+                } else if (res[j][i] != '_' && res[j][Math.min(res[0].length - 1, i + 1)] != '_') {
                     break;
-                } else if (!prostaMesta.isEmpty() && prostaMesta.getLast() == i - 1) {
-                    for (int x = 0; x < prostaMesta.size(); x++) {
-                        if (res[j][prostaMesta.get(prostaMesta.size() - x - 1)] != '_') {
-                            j = res.length;
-                            break;
-                        }
-                    }
-                }
-                else if (j == res.length - 1) {
+                } else if (j == res.length - 1) {
                     prostaMesta.add(i);
                 }
             }
         }
 
-        izpisRezultat(res);
-        System.out.println(prostaMesta);
         char[][] trueRes = new char[res.length][];
 
         for (int i = 0; i < res.length; i++) {
