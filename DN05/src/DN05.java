@@ -32,7 +32,7 @@ public class DN05 {
             return;
             
         } else if (args.length == 3 && "poravnaj".equals(args[0])) {
-            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = poravnajVrstice(tabela, args[2]);
                 izpisRezultat(rezultat);
@@ -40,7 +40,7 @@ public class DN05 {
             return;
             
         } else if (args.length == 6 && "slika".equals(args[0])) {
-            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = vstaviSliko(tabela,
                         Integer.parseInt(args[2]),
@@ -53,7 +53,7 @@ public class DN05 {
             return;
 
         } else if (args.length == 4 && "zamenjaj".equals(args[0])) {
-            char[][] tabela = preberiUrejenoDatoteko(args[1]);
+            tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = zamenjajBesedo(tabela,
                     args[2],
@@ -63,18 +63,30 @@ public class DN05 {
             }
             return;
 
-        }
-        else if (args.length == 2 && "navpicno".equals(args[1])) {
-            char[][] tabela = preberiUrejenoDatoteko(args[0]);
+        } else if (args.length == 4 && "dimenzije".equals(args[0])) {
+            tabela = preberiNeurejenoDatoteko(args[1]);
             if (tabela != null) {
-                char[][]rezultat = navpicnoBesedilo(tabela);
+                char[][] rezultat = spremembaDimenzij(
+                       Integer.parseInt(args[2]),
+                       Integer.parseInt(args[3])
+                );
+                izpisRezultat(rezultat);
+            }
+            return;
+        } else if (args.length == 2 && "navpicno".equals(args[1])) {
+            tabela = preberiUrejenoDatoteko(args[0]);
+            if (tabela != null) {
+                char[][]rezultat = navpicnoBesedilo();
                 izpisRezultat(rezultat);
             }
             return;
         }
+
         System.out.println("Napaka: neustrezni argumenti.");
         return;
     }
+
+    static char[][] tabela;
 
     static void izpisRezultat(char[][] rezultat) {
         if (rezultat == null) return;
@@ -463,7 +475,6 @@ public class DN05 {
 
         int dolzinaStare = staraBeseda.length();
         int dolzinaNove = novaBeseda.length();
-        boolean novaDaljsa = dolzinaNove > dolzinaStare;
 
         ArrayList<String> bufferBesede = new ArrayList<>();
         int bufferIndex = 0;
@@ -486,114 +497,90 @@ public class DN05 {
                 }
             }
 
-            if (!novaDaljsa) {
-                for (int j = 0; j < besede.length; j++) {
-                    String cistaBeseda = odstraniLocila(besede[j]);
+            boolean premikAktiven = bufferIndex != bufferBesede.size();
+            boolean pregledano = false;
 
-                    if (cistaBeseda.equals(staraBeseda)) {
-                        int razlika = dolzinaStare - dolzinaNove - (besede[j].length() - dolzinaStare);
+            for (int j = 0; j < besede.length; j++) {
+                String cistaBeseda = odstraniLocila(besede[j]);
 
-                        novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
-                                .append(novaBeseda)
-                                .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare))
-                                .append("_".repeat(razlika));
+                if (cistaBeseda.equals(staraBeseda) && !premikAktiven) {
 
-                        trenutniPos = zacetkiBesed[j] + dolzinaStare;
-                    } else {
-                        novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
-                                .append(besede[j]);
+                    int potrebnaSirina = Math.max(trenutniPos, zacetkiBesed[j])
+                            + dolzinaNove + besede[j].length() - dolzinaStare;
 
-                        trenutniPos = zacetkiBesed[j] + besede[j].length();
+                    if (potrebnaSirina > sirina) {
+                        System.out.println("Napaka: premajhne dimenzije strani.");
+                        return null;
                     }
-                }
 
-                novaVrstica.append("_".repeat(sirina - trenutniPos));
+                    novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                            .append(novaBeseda)
+                            .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare));
+                    int b = besede[j].length();
+                    int c = dolzinaStare;
+                    trenutniPos = zacetkiBesed[j] + dolzinaNove + besede[j].length() - dolzinaStare;
 
-            } else {
-                boolean premikAktiven = bufferIndex != bufferBesede.size();
-                boolean pregledano = false;
+                    pregledano = false;
 
-                for (int j = 0; j < besede.length; j++) {
-                    String cistaBeseda = odstraniLocila(besede[j]);
+                    if (j != besede.length - 1 && zacetkiBesed[j + 1] <= trenutniPos) {
+                        premikAktiven = true;
+                    }
 
-                    if (cistaBeseda.equals(staraBeseda) && !premikAktiven) {
+                } else if (premikAktiven) {
 
-                        int potrebnaSirina = Math.max(trenutniPos, zacetkiBesed[j])
-                                + dolzinaNove + besede[j].length() - dolzinaStare;
-
-                        if (potrebnaSirina > sirina) {
-                            System.out.println("Napaka: premajhne dimenzije strani.");
-                            return null;
-                        }
-
-                        novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
-                                .append(novaBeseda)
-                                .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare));
-
-                        trenutniPos = zacetkiBesed[j] + dolzinaNove + besede[j].length() - dolzinaStare;
-
-                        pregledano = false;
-
-                        if (j != besede.length - 1 && zacetkiBesed[j + 1] <= trenutniPos) {
-                            premikAktiven = true;
-                        }
-
-                    } else if (premikAktiven) {
-
-                        if (!pregledano) {
-                            for (int n = j; n < besede.length; n++) {
-                                cistaBeseda = odstraniLocila(besede[n]);
-                                if (dodatniZamik + trenutniPos >= zacetkiBesed[n]) {
-                                    if (cistaBeseda.equals(staraBeseda)) {
-                                        bufferBesede.add(novaBeseda + (cistaBeseda.equals(besede[n]) ? "" : besede[n].charAt(dolzinaStare)));
-                                        dodatniZamik += dolzinaNove + (dodatniZamik == 0 ? 0 : 1) + besede[n].length() - cistaBeseda.length();
-                                    } else {
-                                        bufferBesede.add(besede[n]);
-                                        dodatniZamik += besede[n].length() + (dodatniZamik == 0 ? 0 : 1);
-                                    }
-                                    j = besede.length;
-                                } else if (j == n) {
-                                    j--;
-                                    break;
+                    if (!pregledano) {
+                        for (int n = j; n < besede.length; n++) {
+                            cistaBeseda = odstraniLocila(besede[n]);
+                            if (dodatniZamik + trenutniPos >= zacetkiBesed[n]) {
+                                if (cistaBeseda.equals(staraBeseda)) {
+                                    bufferBesede.add(novaBeseda + (cistaBeseda.equals(besede[n]) ? "" : besede[n].charAt(dolzinaStare)));
+                                    dodatniZamik += dolzinaNove + 1 + besede[n].length() - dolzinaStare;
                                 } else {
-                                    j = n - 1;
-                                    break;
+                                    bufferBesede.add(besede[n]);
+                                    dodatniZamik += besede[n].length() + 1;
                                 }
-                            }
-                            pregledano = true;
-                        }
-
-                        for (int x = bufferIndex; x < bufferBesede.size(); x++) {
-                            String trenutnaBeseda = bufferBesede.get(bufferIndex);
-
-                            int dodatenPresledek = (trenutniPos == 0 ? 0 : 1);
-                            int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
-
-                            if (novaPozicija <= sirina) {
-                                novaVrstica.append("_".repeat(dodatenPresledek))
-                                        .append(trenutnaBeseda);
-
-                                trenutniPos = novaPozicija;
-
-                                dodatniZamik -= trenutnaBeseda.length() + 1;
-                                dodatniZamik = Math.max(dodatniZamik, 0);
-
-                                bufferIndex++;
+                                j = besede.length;
+                            } else if (j == n) {
+                                j--;
+                                break;
+                            } else {
+                                j = n - 1;
+                                break;
                             }
                         }
-
-                        premikAktiven = dodatniZamik != 0;
-
-                    } else {
-                        novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
-                                .append(besede[j]);
-
-                        trenutniPos = zacetkiBesed[j] + besede[j].length();
+                        pregledano = true;
                     }
-                }
 
-                novaVrstica.append("_".repeat(sirina - novaVrstica.length()));
+                    for (int x = bufferIndex; x < bufferBesede.size(); x++) {
+                        String trenutnaBeseda = bufferBesede.get(bufferIndex);
+
+                        int dodatenPresledek = (trenutniPos == 0 ? 0 : 1);
+                        int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
+
+                        if (novaPozicija <= sirina) {
+                            novaVrstica.append("_".repeat(dodatenPresledek))
+                                    .append(trenutnaBeseda);
+
+                            trenutniPos = novaPozicija;
+
+                            dodatniZamik -= trenutnaBeseda.length() + 1;
+                            dodatniZamik = Math.max(dodatniZamik, 0);
+
+                            bufferIndex++;
+                        }
+                    }
+
+                    premikAktiven = dodatniZamik != 0;
+
+                } else {
+                    novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                            .append(besede[j]);
+
+                    trenutniPos = zacetkiBesed[j] + besede[j].length();
+                }
             }
+
+            novaVrstica.append("_".repeat(sirina - novaVrstica.length()));
 
             tabela[i] = novaVrstica.toString().toCharArray();
         }
@@ -619,8 +606,22 @@ public class DN05 {
     }
 
 
+    static  char[][] spremembaDimenzij(int novaSirina, int novaVisina) {
+        int steviloVrstic = tabela.length;
+        int dolzinaVrstice = tabela[0].length;
 
-    static char[][] navpicnoBesedilo(char[][] tabela) {
+        ArrayList<String> bufferBesede = new ArrayList<>();
+        int bufferIndex = 0;
+
+
+
+
+        return null;
+    }
+
+
+
+    static char[][] navpicnoBesedilo() {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
         char[][] res = new char[dolzinaVrstice][];
@@ -664,5 +665,3 @@ public class DN05 {
         return trueRes;
     }
 }
-
-// pregled zakaj lahko bypassaš limit na vrstico, zakaj mora biti kdaj max uporabljen, pozabljanje besed
