@@ -30,14 +30,14 @@ public class DN05 {
                 return;
             }
 
-            izpisRezultat(rezultat);
+            izpisRezultata(rezultat);
             return;
             
         } else if (args.length == 3 && "poravnaj".equals(args[0])) {
             tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = poravnajVrstice(tabela, args[2]);
-                izpisRezultat(rezultat);
+                izpisRezultata(rezultat);
             }
             return;
             
@@ -50,7 +50,7 @@ public class DN05 {
                         Integer.parseInt(args[4]),
                         Integer.parseInt(args[5])
                 );
-                izpisRezultat(rezultat);
+                izpisRezultata(rezultat);
             }
             return;
 
@@ -61,7 +61,7 @@ public class DN05 {
                     args[2],
                     args[3]
                 );
-                izpisRezultat(rezultat);
+                izpisRezultata(rezultat);
             }
             return;
 
@@ -72,7 +72,7 @@ public class DN05 {
                        Integer.parseInt(args[2]),
                        Integer.parseInt(args[3])
                 );
-                izpisRezultat(rezultat);
+                izpisRezultata(rezultat);
             }
             return;
 
@@ -95,7 +95,7 @@ public class DN05 {
             tabela = preberiUrejenoDatoteko(args[0]);
             if (tabela != null) {
                 char[][] rezultat = navpicnoBesedilo();
-                izpisRezultat(rezultat);
+                izpisRezultata(rezultat);
             }
             return;
         }
@@ -707,7 +707,7 @@ public class DN05 {
 
 
     // pomožne funkcije
-    static void izpisRezultat(char[][] rezultat) {
+    static void izpisRezultata(char[][] rezultat) {
         if (rezultat == null) return;
         for (char[] vrstica: rezultat) {
             System.out.println(new String(vrstica));
@@ -778,7 +778,6 @@ public class DN05 {
 
         return zacetkiBesed;
     }
-
 
     static String odstraniLocila(String vhodnaBeseda) {
         StringBuilder rezultat = new StringBuilder();
