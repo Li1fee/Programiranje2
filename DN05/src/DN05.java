@@ -1,8 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class DN05 {
     public static void main(String[] args) {
@@ -74,17 +72,31 @@ public class DN05 {
                 izpisRezultat(rezultat);
             }
             return;
+
+        } else if (args.length > 2 && "statistike".equals(args[0])) {
+            tabela = preberiUrejenoDatoteko(args[1]);
+            char[][] argumenti = new char[args.length - 2][];
+
+            for (int i = 2; i < args.length; i++) {
+                argumenti[i - 2] = args[i].toCharArray();
+            }
+
+            if (tabela != null) {
+                izpisiStatistikeNizov(
+                    argumenti
+                );
+            }
+            return;
+
         } else if (args.length == 2 && "navpicno".equals(args[1])) {
             tabela = preberiUrejenoDatoteko(args[0]);
             if (tabela != null) {
-                char[][]rezultat = navpicnoBesedilo();
+                char[][] rezultat = navpicnoBesedilo();
                 izpisRezultat(rezultat);
             }
             return;
         }
-
         System.out.println("Napaka: neustrezni argumenti.");
-        return;
     }
 
     static char[][] tabela;
@@ -140,7 +152,7 @@ public class DN05 {
                 }
                 tabelaStrani[i] = vrsticaStrani.toCharArray();
             }
-            // preveri če je še več vrstic
+            // preveri, če je še več vrstic
             if (sc.hasNextLine()) {
                 System.out.println("Napaka: nepravilne dimenzije strani.");
                 return null;
@@ -292,8 +304,6 @@ public class DN05 {
 
     static String besedeIzVrstice(char[] vrstica) {
         StringBuilder besedilo = new StringBuilder();
-        int dolzinaVrstice = vrstica.length;
-        int tabelaPointer = 0;
         for (char c : vrstica) {
             if (c != '_' || (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) != '_')) {
                 besedilo.append(c);
@@ -513,8 +523,6 @@ public class DN05 {
                     novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
                             .append(novaBeseda)
                             .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare));
-                    int b = besede[j].length();
-                    int c = dolzinaStare;
                     trenutniPos = zacetkiBesed[j] + dolzinaNove + besede[j].length() - dolzinaStare;
 
                     pregledano = false;
@@ -607,7 +615,6 @@ public class DN05 {
 
     static  char[][] spremembaDimenzij(int novaSirina, int novaVisina) {
         int steviloVrstic = tabela.length;
-        int dolzinaVrstice = tabela[0].length;
         int zadnjaCrkaPos = 0;
 
         ArrayList<String> bufferBesede = new ArrayList<>();
@@ -638,7 +645,6 @@ public class DN05 {
 
         for (int i = 0; i < novaVisina; i++) {
             int trenutniPos = 0;
-            int dodatniZamik = 0;
 
             StringBuilder vrstica = new StringBuilder();
 
@@ -684,6 +690,50 @@ public class DN05 {
         return spremembaDimenzijTabela;
     }
 
+    static void izpisiStatistikeNizov(char[][] nizi) {
+        HashMap<String, ArrayList<int[]>> pozicijeBesed = new HashMap<>();
+        boolean najdelBesede = false;
+
+        for (char[] crke: nizi) {
+            pozicijeBesed.put(new String(crke), new ArrayList<>());
+        }
+
+
+        for (int i = 0; i < tabela.length; i++) {
+            for (int j = 0; j < tabela[0].length; j++) {
+                for (char[] crke: nizi) {
+                    for (int x = 0; x < crke.length; x++) {
+                        if (j + x >= tabela[0].length || crke[x] != tabela[i][j + x]) {
+                            break;
+                        } else if (x == crke.length - 1) {
+                            String beseda = new String(crke);
+                            pozicijeBesed.get(beseda).add(new int[]{i, j});
+                        }
+                    }
+                }
+            }
+        }
+
+        for (char[] crke: nizi) {
+            String beseda = new String(crke);
+            ArrayList<int[]> pozicije = pozicijeBesed.get(beseda);
+
+            if (pozicije.isEmpty()) continue;
+
+            najdelBesede = true;
+            System.out.print(beseda + ": ");
+
+            for (int poz = 0; poz < pozicije.size(); poz++) {
+                System.out.print(Arrays.toString(pozicije.get(poz)) + (poz != pozicije.size() - 1 ? ", " : ""));
+            }
+
+            System.out.println();
+        }
+
+        if (!najdelBesede) {
+            System.out.println("V besedilu ni podanih nizov.");
+        }
+    }
 
 
     static char[][] navpicnoBesedilo() {
