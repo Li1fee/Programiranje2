@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class DN05 {
@@ -64,7 +65,7 @@ public class DN05 {
             return;
 
         } else if (args.length == 4 && "dimenzije".equals(args[0])) {
-            tabela = preberiNeurejenoDatoteko(args[1]);
+            tabela = preberiUrejenoDatoteko(args[1]);
             if (tabela != null) {
                 char[][] rezultat = spremembaDimenzij(
                        Integer.parseInt(args[2]),
@@ -304,6 +305,20 @@ public class DN05 {
         return besedilo.toString();
     }
 
+    static int[] zacetkiBesedIndex(String vrstica, int steviloBesed) {
+        int[] zacetkiBesed = new int[steviloBesed + 1];
+        int indeksBesede = 0;
+
+        for (int i = 1; i < vrstica.length(); i++) {
+            if (vrstica.charAt(i - 1) == '_' && vrstica.charAt(i) != '_') {
+                zacetkiBesed[indeksBesede++] = i - 1;
+            }
+        }
+        zacetkiBesed[steviloBesed] = -1;
+
+        return zacetkiBesed;
+    }
+
 
     static String[] posamezneBesedeIzVrstice(char[] vrstica) {
         String skupajBesede = besedeIzVrstice(vrstica);
@@ -332,6 +347,7 @@ public class DN05 {
 
         return splitedBesede;
     }
+
     static char[][] vstaviSliko(char[][] tabela, int x, int y, int sirinaSlike, int visinaSlike) {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
@@ -343,19 +359,8 @@ public class DN05 {
             String[] besede = posamezneBesedeIzVrstice(tabela[vrsticaIndex]);
             StringBuilder novaVrstica = new StringBuilder();
 
-            int[] zacetkiBesed = new int[besede.length + 1];
-            zacetkiBesed[besede.length] = -1;
-
+            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[vrsticaIndex]), besede.length);
             int indeksBesede = 0;
-
-            String vrsticaZMejo = "_" + new String(tabela[vrsticaIndex]);
-            for (int i = 1; i < vrsticaZMejo.length(); i++) {
-                if (vrsticaZMejo.charAt(i - 1) == '_' && vrsticaZMejo.charAt(i) != '_') {
-                    zacetkiBesed[indeksBesede++] = i - 1;
-                }
-            }
-
-            indeksBesede = 0;
 
             for (int stolpec = 0; stolpec < dolzinaVrstice; stolpec++) {
                 boolean jeVSlici = stolpec >= x && stolpec < x + sirinaSlike && vrsticaIndex < y + visinaSlike;
@@ -487,15 +492,7 @@ public class DN05 {
 
             int trenutniPos = 0;
 
-            int[] zacetkiBesed = new int[besede.length];
-            int idx = 0;
-
-            String vrsticaZMejo = "_" + new String(tabela[i]);
-            for (int k = 1; k < vrsticaZMejo.length(); k++) {
-                if (vrsticaZMejo.charAt(k - 1) == '_' && vrsticaZMejo.charAt(k) != '_') {
-                    zacetkiBesed[idx++] = k - 1;
-                }
-            }
+            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[i]), besede.length);
 
             boolean premikAktiven = bufferIndex != bufferBesede.size();
             boolean pregledano = false;
@@ -567,6 +564,8 @@ public class DN05 {
                             dodatniZamik = Math.max(dodatniZamik, 0);
 
                             bufferIndex++;
+                        } else {
+                            break;
                         }
                     }
 
@@ -609,14 +608,80 @@ public class DN05 {
     static  char[][] spremembaDimenzij(int novaSirina, int novaVisina) {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
+        int zadnjaCrkaPos = 0;
 
         ArrayList<String> bufferBesede = new ArrayList<>();
         int bufferIndex = 0;
 
+        char[][] spremembaDimenzijTabela = new char[novaVisina][];
+        boolean izvenDimenzij = false;
+
+        for (int x = steviloVrstic - 1; x > -1; x--) {
+            String[] besede = posamezneBesedeIzVrstice(tabela[x]);
+            if (besede.length == 0) continue;
+
+            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[x]), besede.length);
+            zadnjaCrkaPos = Math.max(zadnjaCrkaPos, zacetkiBesed[besede.length - 1] + besede[besede.length - 1].length());
 
 
+            for (int p = besede.length - 1; p > -1; p--) {
+                bufferBesede.add(0, besede[p]);
+            }
 
-        return null;
+            if (zadnjaCrkaPos > novaSirina ||  x >= novaVisina) {
+                izvenDimenzij = true;
+            }
+
+            bufferBesede = izvenDimenzij ? bufferBesede : new ArrayList<>();
+        }
+
+
+        for (int i = 0; i < novaVisina; i++) {
+            int trenutniPos = 0;
+            int dodatniZamik = 0;
+
+            StringBuilder vrstica = new StringBuilder();
+
+            if (izvenDimenzij) {
+                for (int x = bufferIndex; x < bufferBesede.size(); x++) {
+                    String trenutnaBeseda = bufferBesede.get(bufferIndex);
+
+                    int dodatenPresledek = (trenutniPos == 0 ? 0 : 1);
+                    int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
+
+                    if (novaPozicija <= novaSirina) {
+                        vrstica.append("_".repeat(dodatenPresledek))
+                                .append(trenutnaBeseda);
+
+                        trenutniPos = novaPozicija;
+
+                        bufferIndex++;
+                    } else {
+                        break;
+                    }
+                }
+
+            } else {
+                String[] besede = i < steviloVrstic ? posamezneBesedeIzVrstice(tabela[i]) : new String[0];
+                int[] zacetkiBesed = i < steviloVrstic ? zacetkiBesedIndex("_" + new String(tabela[i]), besede.length) : new int[0];
+
+                for (int j = 0; j < besede.length; j++) {
+                    vrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                            .append(besede[j]);
+                    trenutniPos = zacetkiBesed[j] + besede[j].length();
+                }
+            }
+
+            vrstica.append("_".repeat(novaSirina - vrstica.length()));
+            spremembaDimenzijTabela[i] = vrstica.toString().toCharArray();
+        }
+
+        if (bufferIndex != bufferBesede.size()) {
+            System.out.println("Zmanjšanje polja ni možno");
+            return null;
+        }
+
+        return spremembaDimenzijTabela;
     }
 
 
