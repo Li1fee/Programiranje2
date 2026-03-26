@@ -6,8 +6,8 @@ public class DN05 {
     public static void main(String[] args) {
         if (args.length == 2 && "branje".equals(args[0])) {
             String imeDatoteke = args[1];
-
             String tipDatoteke;
+
             try (Scanner sc = new Scanner(new File(imeDatoteke))) {
                 if (!sc.hasNextLine()) {
                     System.out.println("Napaka: nepravilen format datoteke.");
@@ -18,7 +18,9 @@ public class DN05 {
                 System.out.println("Napaka: datoteka ne obstaja.");
                 return;
             }
+
             char[][] rezultat;
+
             if (tipDatoteke.equals("UREJENO")) {
                 rezultat = preberiUrejenoDatoteko(imeDatoteke);
             } else if (tipDatoteke.equals("NEUREJENO")) {
@@ -27,6 +29,7 @@ public class DN05 {
                 System.out.println("Napačna vrsta datoteke.");
                 return;
             }
+
             izpisRezultat(rezultat);
             return;
             
@@ -100,13 +103,6 @@ public class DN05 {
     }
 
     static char[][] tabela;
-
-    static void izpisRezultat(char[][] rezultat) {
-        if (rezultat == null) return;
-        for (char[] vrstica: rezultat) {
-            System.out.println(new String(vrstica));
-        }
-    }
 
     static char[][] preberiUrejenoDatoteko(String imeDatoteke) {
         try (Scanner sc = new Scanner(new File(imeDatoteke))) {
@@ -216,7 +212,7 @@ public class DN05 {
                 int dodatno = trenutniStavek.isEmpty() ? dolzinaBesede : dolzinaBesede + 1;
 
                 if (trenutniStavek.length() + dodatno > sirinaStrani) {
-                    String celStavek = trenutniStavek + ("_").repeat(sirinaStrani - trenutniStavek.length());
+                    String celStavek = trenutniStavek + praznaMestaPovnilo (sirinaStrani - trenutniStavek.length());
                     tabelaStrani[steviloVrstic++] = celStavek.toCharArray();
                     trenutniStavek.setLength(0); // -> ""
                 }
@@ -230,13 +226,13 @@ public class DN05 {
                     System.out.println("Napaka: premajhne dimenzije strani.");
                     return null;
                 }
-                String celStavek = trenutniStavek + ("_").repeat(sirinaStrani - trenutniStavek.length());
+                String celStavek = trenutniStavek + praznaMestaPovnilo (sirinaStrani - trenutniStavek.length());
                 tabelaStrani[steviloVrstic++] = celStavek.toCharArray();
             }
 
             // manjkajoče linije
             while (steviloVrstic < visinaStrani) {
-                String praznaVrstica = ("_").repeat(sirinaStrani);
+                String praznaVrstica = praznaMestaPovnilo(sirinaStrani);
                 tabelaStrani[steviloVrstic++] = praznaVrstica.toCharArray();
             }
 
@@ -257,21 +253,20 @@ public class DN05 {
             case "levo" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    poravnanaTabela[i] = (besede + ("_").repeat(dolzinaVrstice - besede.length())).toCharArray();
+                    poravnanaTabela[i] = (besede + praznaMestaPovnilo(dolzinaVrstice - besede.length())).toCharArray();
                 }
             }
             case "desno" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    poravnanaTabela[i] = (("_").repeat(dolzinaVrstice - besede.length()) + besede).toCharArray();
+                    poravnanaTabela[i] = (praznaMestaPovnilo(dolzinaVrstice - besede.length()) + besede).toCharArray();
                 }
             }
             case "sredina" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
                     double polovica = (dolzinaVrstice - besede.length()) / 2.0;
-
-                    besede = ("_").repeat((int) polovica) + besede + ("_").repeat((int) Math.ceil(polovica));
+                    besede = praznaMestaPovnilo((int) polovica) + besede + praznaMestaPovnilo((int) Math.ceil(polovica));
                     poravnanaTabela[i] = besede.toCharArray();
                 }
             }
@@ -292,7 +287,7 @@ public class DN05 {
 
                     StringBuilder res = new StringBuilder();
                     for (int j = 0; j < steviloVsehBesed; j++) {
-                        res.append(vseBesede[j]).append(("_").repeat(j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
+                        res.append(vseBesede[j]).append(praznaMestaPovnilo  (j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
                     }
 
                     poravnanaTabela[i] = res.toString().toCharArray();
@@ -302,61 +297,6 @@ public class DN05 {
         return poravnanaTabela;
     }
 
-    static String besedeIzVrstice(char[] vrstica) {
-        StringBuilder besedilo = new StringBuilder();
-        for (char c : vrstica) {
-            if (c != '_' || (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) != '_')) {
-                besedilo.append(c);
-            }
-        }
-        if (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) == '_') {
-            return besedilo.substring(0, besedilo.length() - 1);
-        }
-        return besedilo.toString();
-    }
-
-    static int[] zacetkiBesedIndex(String vrstica, int steviloBesed) {
-        int[] zacetkiBesed = new int[steviloBesed + 1];
-        int indeksBesede = 0;
-
-        for (int i = 1; i < vrstica.length(); i++) {
-            if (vrstica.charAt(i - 1) == '_' && vrstica.charAt(i) != '_') {
-                zacetkiBesed[indeksBesede++] = i - 1;
-            }
-        }
-        zacetkiBesed[steviloBesed] = -1;
-
-        return zacetkiBesed;
-    }
-
-
-    static String[] posamezneBesedeIzVrstice(char[] vrstica) {
-        String skupajBesede = besedeIzVrstice(vrstica);
-        if (skupajBesede.isEmpty()) return new String[0];
-        int steviloBesed = 1;
-
-        for (char c : skupajBesede.toCharArray()) {
-            if (c == '_') {
-                steviloBesed++;
-            }
-        }
-
-        String[] splitedBesede = new String[steviloBesed];
-        StringBuilder beseda = new StringBuilder();
-        int steviloVsehBesed = splitedBesede.length;
-
-        for (char c : skupajBesede.toCharArray()) {
-            if (c == '_') {
-                splitedBesede[steviloVsehBesed - steviloBesed--] = beseda.toString();
-                beseda.setLength(0);
-            } else {
-                beseda.append(c);
-            }
-        }
-        splitedBesede[steviloVsehBesed - 1] = beseda.toString();
-
-        return splitedBesede;
-    }
 
     static char[][] vstaviSliko(char[][] tabela, int x, int y, int sirinaSlike, int visinaSlike) {
         int steviloVrstic = tabela.length;
@@ -411,7 +351,7 @@ public class DN05 {
                                 preostaleBesede.add(besede[indeksBesede++]);
 
                                 int kolikoDodati = stolpec < x ? x - stolpec : dolzinaVrstice - stolpec;
-                                novaVrstica.append("_".repeat(kolikoDodati));
+                                novaVrstica.append(praznaMestaPovnilo(kolikoDodati));
                                 stolpec += kolikoDodati - 1;
                             }
 
@@ -520,7 +460,7 @@ public class DN05 {
                         return null;
                     }
 
-                    novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                    novaVrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
                             .append(novaBeseda)
                             .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare));
                     trenutniPos = zacetkiBesed[j] + dolzinaNove + besede[j].length() - dolzinaStare;
@@ -563,7 +503,7 @@ public class DN05 {
                         int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
 
                         if (novaPozicija <= sirina) {
-                            novaVrstica.append("_".repeat(dodatenPresledek))
+                            novaVrstica.append(praznaMestaPovnilo(dodatenPresledek))
                                     .append(trenutnaBeseda);
 
                             trenutniPos = novaPozicija;
@@ -580,15 +520,14 @@ public class DN05 {
                     premikAktiven = dodatniZamik != 0;
 
                 } else {
-                    novaVrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                    novaVrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
                             .append(besede[j]);
 
                     trenutniPos = zacetkiBesed[j] + besede[j].length();
                 }
             }
 
-            novaVrstica.append("_".repeat(sirina - novaVrstica.length()));
-
+            novaVrstica.append(praznaMestaPovnilo(sirina - novaVrstica.length()));
             tabela[i] = novaVrstica.toString().toCharArray();
         }
 
@@ -599,19 +538,6 @@ public class DN05 {
 
         return tabela;
     }
-
-    static String odstraniLocila(String vhodnaBeseda) {
-        StringBuilder rezultat = new StringBuilder();
-
-        for (char znak : vhodnaBeseda.toCharArray()) {
-            if (znak != '.' && znak != '?' && znak != '!') {
-                rezultat.append(znak);
-            }
-        }
-
-        return rezultat.toString();
-    }
-
 
     static  char[][] spremembaDimenzij(int novaSirina, int novaVisina) {
         int steviloVrstic = tabela.length;
@@ -656,7 +582,7 @@ public class DN05 {
                     int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
 
                     if (novaPozicija <= novaSirina) {
-                        vrstica.append("_".repeat(dodatenPresledek))
+                        vrstica.append(praznaMestaPovnilo(dodatenPresledek))
                                 .append(trenutnaBeseda);
 
                         trenutniPos = novaPozicija;
@@ -672,13 +598,12 @@ public class DN05 {
                 int[] zacetkiBesed = i < steviloVrstic ? zacetkiBesedIndex("_" + new String(tabela[i]), besede.length) : new int[0];
 
                 for (int j = 0; j < besede.length; j++) {
-                    vrstica.append("_".repeat(zacetkiBesed[j] - trenutniPos))
+                    vrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
                             .append(besede[j]);
                     trenutniPos = zacetkiBesed[j] + besede[j].length();
                 }
             }
-
-            vrstica.append("_".repeat(novaSirina - vrstica.length()));
+            vrstica.append(praznaMestaPovnilo(novaSirina - vrstica.length()));
             spremembaDimenzijTabela[i] = vrstica.toString().toCharArray();
         }
 
@@ -765,7 +690,7 @@ public class DN05 {
             }
         }
 
-        char[][] trueRes = new char[res.length][];
+        char[][] finalRes = new char[res.length][];
 
         for (int i = 0; i < res.length; i++) {
             StringBuilder vrstica = new StringBuilder();
@@ -774,9 +699,96 @@ public class DN05 {
                     vrstica.append(res[i][j]);
                 }
             }
-            trueRes[i] = vrstica.toString().toCharArray();
+            finalRes[i] = vrstica.toString().toCharArray();
         }
 
-        return trueRes;
+        return finalRes;
+    }
+
+
+    // pomožne funkcije
+    static void izpisRezultat(char[][] rezultat) {
+        if (rezultat == null) return;
+        for (char[] vrstica: rezultat) {
+            System.out.println(new String(vrstica));
+        }
+    }
+
+    static String praznaMestaPovnilo(int steviloPraznihMest) {
+        StringBuilder praznaVrstica = new StringBuilder();
+
+        for (int i = 0; i < steviloPraznihMest; i++) {
+            praznaVrstica.append("_");
+        }
+
+        return praznaVrstica.toString();
+    }
+
+    static String besedeIzVrstice(char[] vrstica) {
+        StringBuilder besedilo = new StringBuilder();
+        for (char c : vrstica) {
+            if (c != '_' || (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) != '_')) {
+                besedilo.append(c);
+            }
+        }
+        if (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) == '_') {
+            return besedilo.substring(0, besedilo.length() - 1);
+        }
+        return besedilo.toString();
+    }
+
+    static String[] posamezneBesedeIzVrstice(char[] vrstica) {
+        String skupajBesede = besedeIzVrstice(vrstica);
+        if (skupajBesede.isEmpty()) return new String[0];
+        int steviloBesed = 1;
+
+        for (char c : skupajBesede.toCharArray()) {
+            if (c == '_') {
+                steviloBesed++;
+            }
+        }
+
+        String[] splitedBesede = new String[steviloBesed];
+        StringBuilder beseda = new StringBuilder();
+        int steviloVsehBesed = splitedBesede.length;
+
+        for (char c : skupajBesede.toCharArray()) {
+            if (c == '_') {
+                splitedBesede[steviloVsehBesed - steviloBesed--] = beseda.toString();
+                beseda.setLength(0);
+            } else {
+                beseda.append(c);
+            }
+        }
+        splitedBesede[steviloVsehBesed - 1] = beseda.toString();
+
+        return splitedBesede;
+    }
+
+    static int[] zacetkiBesedIndex(String vrstica, int steviloBesed) {
+        int[] zacetkiBesed = new int[steviloBesed + 1];
+        int indeksBesede = 0;
+
+        for (int i = 1; i < vrstica.length(); i++) {
+            if (vrstica.charAt(i - 1) == '_' && vrstica.charAt(i) != '_') {
+                zacetkiBesed[indeksBesede++] = i - 1;
+            }
+        }
+        zacetkiBesed[steviloBesed] = -1;
+
+        return zacetkiBesed;
+    }
+
+
+    static String odstraniLocila(String vhodnaBeseda) {
+        StringBuilder rezultat = new StringBuilder();
+
+        for (char znak : vhodnaBeseda.toCharArray()) {
+            if (znak != '.' && znak != '?' && znak != '!') {
+                rezultat.append(znak);
+            }
+        }
+
+        return rezultat.toString();
     }
 }
