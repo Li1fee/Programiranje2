@@ -1,7 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class DN05 {
     public static void main(String[] args) {
@@ -487,10 +487,12 @@ public class DN05 {
 
             if (!vecjaNovaBeseda) {
                 for (int j = 0; j < besede.length; j++) {
-                    if (besede[j].equals(stara)) {
+                    String novaBeseda = besedaBrezSimbolov(besede[j]);
+                    if (novaBeseda.equals(stara)) {
                         vrstica.append("_".repeat(zacetkiBesed[j] - pos))
                                 .append(nova)
-                                .append("_".repeat(dolzinaStareBesede - dolzinaNoveBesede));
+                                .append(besede[j].length() == dolzinaStareBesede ? "" : besede[j].charAt(dolzinaStareBesede))
+                                .append("_".repeat(dolzinaStareBesede - dolzinaNoveBesede - (besede[j].length() - dolzinaStareBesede)));
                         pos = zacetkiBesed[j] + dolzinaStareBesede;
                     } else {
                         vrstica.append("_".repeat(zacetkiBesed[j] - pos))
@@ -503,14 +505,15 @@ public class DN05 {
                 boolean premik = premaknjeneIndex != premaknjeneBesede.size();
                 boolean pregled = false;
                 for (int j = 0; j < besede.length; j++) {
-                    if (besede[j].equals(stara) && !premik) {
-                        if (pos + nova.length() >= dolzinaVrstice) {
+                    String novaBeseda = besedaBrezSimbolov(besede[j]);
+                    if (novaBeseda.equals(stara) && !premik) {
+                        if (Math.max(pos, zacetkiBesed[j]) + nova.length() + besede[j].length() - dolzinaStareBesede > dolzinaVrstice) {
                             System.out.println("Napaka: premajhne dimenzije strani.");
                             return null;
                         }
                         vrstica.append("_".repeat(zacetkiBesed[j] - pos))
-                                .append(nova);
-                        pos = zacetkiBesed[j] + dolzinaNoveBesede;
+                                .append(nova).append(besede[j].length() == dolzinaStareBesede ? "" : besede[j].charAt(dolzinaStareBesede));
+                        pos = zacetkiBesed[j] + dolzinaNoveBesede + besede[j].length() - dolzinaStareBesede;
 
                         pregled = false;
 
@@ -569,6 +572,18 @@ public class DN05 {
         }
 
         return tabela;
+    }
+
+    static String besedaBrezSimbolov(String beseda) {
+        StringBuilder beseda2 = new StringBuilder();
+
+        for (char c: beseda.toCharArray()) {
+            if (c != '.' && c != '?' && c != '!') {
+                beseda2.append(c);
+            }
+        }
+
+        return beseda2.toString();
     }
 
 
