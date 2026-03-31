@@ -86,15 +86,16 @@ public class DN05 {
 
             if (tabela != null) {
                 izpisiStatistikeNizov(
+                    tabela,
                     argumenti
                 );
             }
             return;
 
-        } else if (args.length == 2 && "navpicno".equals(args[1])) {
-            tabela = preberiUrejenoDatoteko(args[0]);
+        } else if (args.length == 4 && "navpicno".equals(args[3])) {
+            tabela = preberiUrejenoDatoteko(args[2]);
             if (tabela != null) {
-                char[][] rezultat = navpicnoBesedilo();
+                char[][] rezultat = navpicnoBesedilo(tabela);
                 izpisRezultata(rezultat);
             }
             return;
@@ -212,7 +213,7 @@ public class DN05 {
                 int dodatno = trenutniStavek.isEmpty() ? dolzinaBesede : dolzinaBesede + 1;
 
                 if (trenutniStavek.length() + dodatno > sirinaStrani) {
-                    String celStavek = trenutniStavek + praznaMestaPovnilo (sirinaStrani - trenutniStavek.length());
+                    String celStavek = trenutniStavek + povniloCrk(sirinaStrani - trenutniStavek.length(), '_');
                     tabelaStrani[steviloVrstic++] = celStavek.toCharArray();
                     trenutniStavek.setLength(0); // -> ""
                 }
@@ -226,13 +227,13 @@ public class DN05 {
                     System.out.println("Napaka: premajhne dimenzije strani.");
                     return null;
                 }
-                String celStavek = trenutniStavek + praznaMestaPovnilo (sirinaStrani - trenutniStavek.length());
+                String celStavek = trenutniStavek + povniloCrk(sirinaStrani - trenutniStavek.length(), '_');
                 tabelaStrani[steviloVrstic++] = celStavek.toCharArray();
             }
 
             // manjkajoče linije
             while (steviloVrstic < visinaStrani) {
-                String praznaVrstica = praznaMestaPovnilo(sirinaStrani);
+                String praznaVrstica = povniloCrk(sirinaStrani, '_');
                 tabelaStrani[steviloVrstic++] = praznaVrstica.toCharArray();
             }
 
@@ -253,20 +254,20 @@ public class DN05 {
             case "levo" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    poravnanaTabela[i] = (besede + praznaMestaPovnilo(dolzinaVrstice - besede.length())).toCharArray();
+                    poravnanaTabela[i] = (besede + povniloCrk(dolzinaVrstice - besede.length(), '_')).toCharArray();
                 }
             }
             case "desno" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
-                    poravnanaTabela[i] = (praznaMestaPovnilo(dolzinaVrstice - besede.length()) + besede).toCharArray();
+                    poravnanaTabela[i] = (povniloCrk(dolzinaVrstice - besede.length(), '_') + besede).toCharArray();
                 }
             }
             case "sredina" -> {
                 for (int i = 0; i < dolzinaTabele; i++) {
                     String besede = besedeIzVrstice(tabela[i]);
                     double polovica = (dolzinaVrstice - besede.length()) / 2.0;
-                    besede = praznaMestaPovnilo((int) polovica) + besede + praznaMestaPovnilo((int) Math.ceil(polovica));
+                    besede = povniloCrk((int) polovica, '_') + besede + povniloCrk((int) Math.ceil(polovica), '_');
                     poravnanaTabela[i] = besede.toCharArray();
                 }
             }
@@ -287,7 +288,7 @@ public class DN05 {
 
                     StringBuilder res = new StringBuilder();
                     for (int j = 0; j < steviloVsehBesed; j++) {
-                        res.append(vseBesede[j]).append(praznaMestaPovnilo  (j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0));
+                        res.append(vseBesede[j]).append(povniloCrk  (j != steviloVsehBesed - 1 || steviloVsehBesed == 1 ? (int) steviloZnakov + (dodatniZnak-- > 0 ? 1 : 0) : 0, '_'));
                     }
 
                     poravnanaTabela[i] = res.toString().toCharArray();
@@ -302,127 +303,94 @@ public class DN05 {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
 
-        ArrayList<String> preostaleBesede = new ArrayList<>();
-        int indeksPreostalih = 0;
+        String[] bufferBesede = new String[0];
+        int bufferIndex = 0;
+
+        int dodatniZamik = 0;
 
         for (int vrsticaIndex = y; vrsticaIndex < steviloVrstic; vrsticaIndex++) {
             String[] besede = posamezneBesedeIzVrstice(tabela[vrsticaIndex]);
+            int[] zacetkiBesed = zacetkiBesedIndex(tabela[vrsticaIndex], besede.length);
+            zacetkiBesed = vrsticaIndex < y + visinaSlike ? vstaviPolozajSlike(zacetkiBesed, x) : zacetkiBesed;
+
+            int trenutniPos = 0;
             StringBuilder novaVrstica = new StringBuilder();
+            boolean postavljenaSlika = false;
+            boolean konecSlike = vrsticaIndex >= y + visinaSlike;
+            boolean a = false;
 
-            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[vrsticaIndex]), besede.length);
-            int indeksBesede = 0;
 
-            for (int stolpec = 0; stolpec < dolzinaVrstice; stolpec++) {
-                boolean jeVSlici = stolpec >= x && stolpec < x + sirinaSlike && vrsticaIndex < y + visinaSlike;
-                boolean jeDesnoOdSlike = stolpec >= x + sirinaSlike || vrsticaIndex >= y + visinaSlike;
-
-                if (jeVSlici) {
-                    novaVrstica.append("#");
-
-                    if (stolpec == zacetkiBesed[indeksBesede]) {
-                        preostaleBesede.add(besede[indeksBesede++]);
+            for (int j = 0; j < zacetkiBesed.length; j++) {
+                int zamikBesede = (postavljenaSlika ? 1 : 0);
+                if (bufferIndex == bufferBesede.length && !a) {
+                    if ((zacetkiBesed[j] >= x || zacetkiBesed[j] + besede[j - zamikBesede].length() < x + sirinaSlike) && !konecSlike) {
+                        j--;
+                        a = true;
+                        continue;
                     }
 
+                    novaVrstica.append(povniloCrk(zacetkiBesed[j] - trenutniPos, '_'))
+                            .append(besede[j - zamikBesede]);
+                    trenutniPos = zacetkiBesed[j];
                 } else {
-                    if (indeksPreostalih == preostaleBesede.size()) {
-
-                        if (stolpec == zacetkiBesed[indeksBesede]) {
-                            int dolzinaBesede = besede[indeksBesede].length();
-
-                            if (dolzinaBesede + stolpec <= x && vrsticaIndex < y + visinaSlike) {
-                                stolpec += dolzinaBesede - 1;
-                                novaVrstica.append(besede[indeksBesede++]);
-
-                                if (stolpec + 1 < x) {
-                                    novaVrstica.append("_");
-                                    stolpec++;
-                                }
-
-                            } else if (jeDesnoOdSlike && dolzinaBesede + stolpec <= dolzinaVrstice) {
-                                stolpec += dolzinaBesede - 1;
-                                novaVrstica.append(besede[indeksBesede++]);
-
-                                if (stolpec + 1 < dolzinaVrstice) {
-                                    novaVrstica.append("_");
-                                    stolpec++;
-                                }
-
-                            } else {
-                                preostaleBesede.add(besede[indeksBesede++]);
-
-                                int kolikoDodati = stolpec < x ? x - stolpec : dolzinaVrstice - stolpec;
-                                novaVrstica.append(praznaMestaPovnilo(kolikoDodati));
-                                stolpec += kolikoDodati - 1;
-                            }
-
+                    for (int n = j; n < zacetkiBesed.length; n++) {
+                        j = zacetkiBesed.length;
+                        if (zacetkiBesed[n] == x && !postavljenaSlika && !konecSlike) {
+                            novaVrstica.append(povniloCrk(x - trenutniPos, '_'))
+                                    .append(povniloCrk(sirinaSlike, '#'));
+                            trenutniPos = x + sirinaSlike;
+                            postavljenaSlika = true;
+                            break;
+                        } else if (trenutniPos + dodatniZamik >= zacetkiBesed[n] && (postavljenaSlika || konecSlike)) {
+                            bufferBesede = besedeVBuffer(bufferBesede, besede[n - zamikBesede]);
+                            zamikBesede += besede[n - zamikBesede].length() + 1;
+                        } else if ((trenutniPos + dodatniZamik >= zacetkiBesed[n] || (zacetkiBesed[n] >= x)) && !postavljenaSlika) {
+                            bufferBesede = besedeVBuffer(bufferBesede, besede[n - zamikBesede]);
+                            zamikBesede += besede[n - zamikBesede].length() + 1;
                         } else {
-                            novaVrstica.append("_");
+                            j = n;
+                            break;
                         }
+                        a = false;
+                    }
 
-                    } else {
-                        String trenutnaBeseda = preostaleBesede.get(indeksPreostalih);
-                        int dolzinaBesede = trenutnaBeseda.length();
 
-                        if (dolzinaBesede + stolpec <= x && vrsticaIndex < y + visinaSlike) {
+                    for (int b = bufferIndex; b < bufferBesede.length; b++) {
+                        String trenutnaBeseda = bufferBesede[bufferIndex];
 
-                            for (int poz : zacetkiBesed) {
-                                if (poz >= stolpec && poz < dolzinaBesede + stolpec) {
-                                    preostaleBesede.add(besede[indeksBesede++]);
-                                }
-                            }
+                        int dodatenPresledek = (trenutniPos == 0 || (trenutniPos == x + sirinaSlike) && !konecSlike ? 0 : 1);
+                        int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
 
-                            stolpec += dolzinaBesede - 1;
-                            novaVrstica.append(trenutnaBeseda);
-                            indeksPreostalih++;
+                        if (novaPozicija <= dolzinaVrstice && ((!postavljenaSlika && novaPozicija < x || trenutniPos >= x + sirinaSlike) || konecSlike)) {
+                            novaVrstica.append(povniloCrk(dodatenPresledek, '_'))
+                                    .append(trenutnaBeseda);
 
-                            if (stolpec + 1 < x) {
-                                if (stolpec + 1 == zacetkiBesed[indeksBesede]) {
-                                    preostaleBesede.add(besede[indeksBesede++]);
-                                }
-                                novaVrstica.append("_");
-                                stolpec++;
-                            }
+                            trenutniPos = novaPozicija;
 
-                        } else if (jeDesnoOdSlike && dolzinaBesede + stolpec <= dolzinaVrstice) {
+                            dodatniZamik -= trenutnaBeseda.length() + 1;
+                            dodatniZamik = Math.max(dodatniZamik, 0);
 
-                            for (int poz : zacetkiBesed) {
-                                if (poz >= stolpec && poz < dolzinaBesede + stolpec) {
-                                    preostaleBesede.add(besede[indeksBesede++]);
-                                }
-                            }
-
-                            stolpec += dolzinaBesede - 1;
-                            novaVrstica.append(trenutnaBeseda);
-                            indeksPreostalih++;
-
-                            if (stolpec + 1 < dolzinaVrstice) {
-                                if (stolpec + 1 == zacetkiBesed[indeksBesede]) {
-                                    preostaleBesede.add(besede[indeksBesede++]);
-                                }
-                                novaVrstica.append("_");
-                                stolpec++;
-                            }
-
+                            bufferIndex++;
                         } else {
-                            if (stolpec == zacetkiBesed[indeksBesede]) {
-                                preostaleBesede.add(besede[indeksBesede++]);
-                            }
-                            novaVrstica.append("_");
+                            break;
                         }
                     }
                 }
             }
+            novaVrstica.append(povniloCrk(dolzinaVrstice - novaVrstica.length(), '_'));
 
             tabela[vrsticaIndex] = novaVrstica.toString().toCharArray();
         }
 
-        if (preostaleBesede.size() != indeksPreostalih) {
+        if (bufferIndex != bufferBesede.length) {
             System.out.println("Napaka: premajhne dimenzije strani.");
             return null;
         }
 
         return tabela;
     }
+
+
 
     static char[][] zamenjajBesedo(char[][] tabela, String staraBeseda, String novaBeseda) {
         int stVrstic = tabela.length;
@@ -431,7 +399,7 @@ public class DN05 {
         int dolzinaStare = staraBeseda.length();
         int dolzinaNove = novaBeseda.length();
 
-        ArrayList<String> bufferBesede = new ArrayList<>();
+        String[] bufferBesede = new String[0];
         int bufferIndex = 0;
 
         int dodatniZamik = 0;
@@ -442,13 +410,15 @@ public class DN05 {
 
             int trenutniPos = 0;
 
-            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[i]), besede.length);
+            int[] zacetkiBesed = zacetkiBesedIndex(tabela[i], besede.length);
 
-            boolean premikAktiven = bufferIndex != bufferBesede.size();
+            boolean premikAktiven = bufferIndex != bufferBesede.length;
             boolean pregledano = false;
 
-            for (int j = 0; j < besede.length; j++) {
-                String cistaBeseda = odstraniLocila(besede[j]);
+            int steviloBesed = besede.length != 0 ? besede.length : 1;
+
+            for (int j = 0; j < steviloBesed; j++) {
+                String cistaBeseda = odstraniLocila(besede.length != 0 ? besede[j] : "");
 
                 if (cistaBeseda.equals(staraBeseda) && !premikAktiven) {
 
@@ -460,7 +430,7 @@ public class DN05 {
                         return null;
                     }
 
-                    novaVrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
+                    novaVrstica.append(povniloCrk(zacetkiBesed[j] - trenutniPos, '_'))
                             .append(novaBeseda)
                             .append(besede[j].length() == dolzinaStare ? "" : besede[j].charAt(dolzinaStare));
                     trenutniPos = zacetkiBesed[j] + dolzinaNove + besede[j].length() - dolzinaStare;
@@ -478,13 +448,13 @@ public class DN05 {
                             cistaBeseda = odstraniLocila(besede[n]);
                             if (dodatniZamik + trenutniPos >= zacetkiBesed[n]) {
                                 if (cistaBeseda.equals(staraBeseda)) {
-                                    bufferBesede.add(novaBeseda + (cistaBeseda.equals(besede[n]) ? "" : besede[n].charAt(dolzinaStare)));
+                                    bufferBesede = besedeVBuffer(bufferBesede, novaBeseda + (cistaBeseda.equals(besede[n]) ? "" : besede[n].charAt(dolzinaStare)));
                                     dodatniZamik += dolzinaNove + 1 + besede[n].length() - dolzinaStare;
                                 } else {
-                                    bufferBesede.add(besede[n]);
+                                    bufferBesede = besedeVBuffer(bufferBesede, besede[n]);
                                     dodatniZamik += besede[n].length() + 1;
                                 }
-                                j = besede.length;
+                                j = steviloBesed;
                             } else if (j == n) {
                                 j--;
                                 break;
@@ -496,14 +466,14 @@ public class DN05 {
                         pregledano = true;
                     }
 
-                    for (int x = bufferIndex; x < bufferBesede.size(); x++) {
-                        String trenutnaBeseda = bufferBesede.get(bufferIndex);
+                    for (int x = bufferIndex; x < bufferBesede.length; x++) {
+                        String trenutnaBeseda = bufferBesede[bufferIndex];
 
                         int dodatenPresledek = (trenutniPos == 0 ? 0 : 1);
                         int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
 
                         if (novaPozicija <= sirina) {
-                            novaVrstica.append(praznaMestaPovnilo(dodatenPresledek))
+                            novaVrstica.append(povniloCrk(dodatenPresledek, '_'))
                                     .append(trenutnaBeseda);
 
                             trenutniPos = novaPozicija;
@@ -520,18 +490,18 @@ public class DN05 {
                     premikAktiven = dodatniZamik != 0;
 
                 } else {
-                    novaVrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
+                    novaVrstica.append(povniloCrk(zacetkiBesed[j] - trenutniPos, '_'))
                             .append(besede[j]);
 
                     trenutniPos = zacetkiBesed[j] + besede[j].length();
                 }
             }
 
-            novaVrstica.append(praznaMestaPovnilo(sirina - novaVrstica.length()));
+            novaVrstica.append(povniloCrk(sirina - novaVrstica.length(), '_'));
             tabela[i] = novaVrstica.toString().toCharArray();
         }
 
-        if (bufferIndex != bufferBesede.size()) {
+        if (bufferIndex != bufferBesede.length) {
             System.out.println("Napaka: premajhne dimenzije strani.");
             return null;
         }
@@ -543,7 +513,7 @@ public class DN05 {
         int steviloVrstic = tabela.length;
         int zadnjaCrkaPos = 0;
 
-        ArrayList<String> bufferBesede = new ArrayList<>();
+        String[] bufferBesede = new String[0];
         int bufferIndex = 0;
 
         char[][] spremembaDimenzijTabela = new char[novaVisina][];
@@ -553,21 +523,20 @@ public class DN05 {
             String[] besede = posamezneBesedeIzVrstice(tabela[x]);
             if (besede.length == 0) continue;
 
-            int[] zacetkiBesed = zacetkiBesedIndex("_" + new String(tabela[x]), besede.length);
+            int[] zacetkiBesed = zacetkiBesedIndex(tabela[x], besede.length);
             zadnjaCrkaPos = Math.max(zadnjaCrkaPos, zacetkiBesed[besede.length - 1] + besede[besede.length - 1].length());
 
 
             for (int p = besede.length - 1; p > -1; p--) {
-                bufferBesede.add(0, besede[p]);
+                bufferBesede = besedeVBuffer(bufferBesede, besede[p], true);
             }
 
             if (zadnjaCrkaPos > novaSirina ||  x >= novaVisina) {
                 izvenDimenzij = true;
             }
 
-            bufferBesede = izvenDimenzij ? bufferBesede : new ArrayList<>();
+            bufferBesede = izvenDimenzij ? bufferBesede : new String[0];
         }
-
 
         for (int i = 0; i < novaVisina; i++) {
             int trenutniPos = 0;
@@ -575,14 +544,14 @@ public class DN05 {
             StringBuilder vrstica = new StringBuilder();
 
             if (izvenDimenzij) {
-                for (int x = bufferIndex; x < bufferBesede.size(); x++) {
-                    String trenutnaBeseda = bufferBesede.get(bufferIndex);
+                for (int x = bufferIndex; x < bufferBesede.length; x++) {
+                    String trenutnaBeseda = bufferBesede[bufferIndex];
 
                     int dodatenPresledek = (trenutniPos == 0 ? 0 : 1);
                     int novaPozicija = trenutniPos + trenutnaBeseda.length() + dodatenPresledek;
 
                     if (novaPozicija <= novaSirina) {
-                        vrstica.append(praznaMestaPovnilo(dodatenPresledek))
+                        vrstica.append(povniloCrk(dodatenPresledek, '_'))
                                 .append(trenutnaBeseda);
 
                         trenutniPos = novaPozicija;
@@ -592,22 +561,21 @@ public class DN05 {
                         break;
                     }
                 }
-
             } else {
                 String[] besede = i < steviloVrstic ? posamezneBesedeIzVrstice(tabela[i]) : new String[0];
-                int[] zacetkiBesed = i < steviloVrstic ? zacetkiBesedIndex("_" + new String(tabela[i]), besede.length) : new int[0];
+                int[] zacetkiBesed = i < steviloVrstic ? zacetkiBesedIndex(tabela[i], besede.length) : new int[0];
 
                 for (int j = 0; j < besede.length; j++) {
-                    vrstica.append(praznaMestaPovnilo(zacetkiBesed[j] - trenutniPos))
+                    vrstica.append(povniloCrk(zacetkiBesed[j] - trenutniPos, '_'))
                             .append(besede[j]);
                     trenutniPos = zacetkiBesed[j] + besede[j].length();
                 }
             }
-            vrstica.append(praznaMestaPovnilo(novaSirina - vrstica.length()));
+            vrstica.append(povniloCrk(novaSirina - vrstica.length(), '_'));
             spremembaDimenzijTabela[i] = vrstica.toString().toCharArray();
         }
 
-        if (bufferIndex != bufferBesede.size()) {
+        if (bufferIndex != bufferBesede.length) {
             System.out.println("Zmanjšanje polja ni možno");
             return null;
         }
@@ -615,14 +583,13 @@ public class DN05 {
         return spremembaDimenzijTabela;
     }
 
-    static void izpisiStatistikeNizov(char[][] nizi) {
+    static void izpisiStatistikeNizov(char[][] tabela, char[][] nizi) {
         HashMap<String, ArrayList<int[]>> pozicijeBesed = new HashMap<>();
         boolean najdelBesede = false;
 
         for (char[] crke: nizi) {
             pozicijeBesed.put(new String(crke), new ArrayList<>());
         }
-
 
         for (int i = 0; i < tabela.length; i++) {
             for (int j = 0; j < tabela[0].length; j++) {
@@ -660,8 +627,7 @@ public class DN05 {
         }
     }
 
-
-    static char[][] navpicnoBesedilo() {
+    static char[][] navpicnoBesedilo(char[][] tabela) {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
         char[][] res = new char[dolzinaVrstice][];
@@ -682,7 +648,7 @@ public class DN05 {
             for (int j = 0; j < res.length; j++) {
                 if (res[j][i] != '_') {
                     break;
-                } else if (res[j][i] != '_' && res[j][Math.min(res[0].length - 1, i + 1)] != '_') {
+                } else if (res[j][Math.min(res[0].length - 1, i + 1)] != '_' && res[j][Math.max(0, i - 1)] != '_') {
                     break;
                 } else if (j == res.length - 1) {
                     prostaMesta.add(i);
@@ -714,11 +680,11 @@ public class DN05 {
         }
     }
 
-    static String praznaMestaPovnilo(int steviloPraznihMest) {
+    static String povniloCrk(int steviloPraznihMest, char povnilo) {
         StringBuilder praznaVrstica = new StringBuilder();
 
         for (int i = 0; i < steviloPraznihMest; i++) {
-            praznaVrstica.append("_");
+            praznaVrstica.append(povnilo);
         }
 
         return praznaVrstica.toString();
@@ -726,14 +692,24 @@ public class DN05 {
 
     static String besedeIzVrstice(char[] vrstica) {
         StringBuilder besedilo = new StringBuilder();
+        char prejsnaCrka = ' ';
+        boolean novaBeseda = false;
+
         for (char c : vrstica) {
-            if (c != '_' || (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) != '_')) {
+            if (c == '_') {
+                if (!besedilo.isEmpty()) {
+                    novaBeseda = true;
+                }
+            } else {
+                if (novaBeseda && !besedilo.isEmpty()) {
+                    besedilo.append('_');
+                }
                 besedilo.append(c);
+                prejsnaCrka = c;
+                novaBeseda = false;
             }
         }
-        if (!besedilo.isEmpty() && besedilo.charAt(besedilo.length() - 1) == '_') {
-            return besedilo.substring(0, besedilo.length() - 1);
-        }
+
         return besedilo.toString();
     }
 
@@ -765,16 +741,35 @@ public class DN05 {
         return splitedBesede;
     }
 
-    static int[] zacetkiBesedIndex(String vrstica, int steviloBesed) {
-        int[] zacetkiBesed = new int[steviloBesed + 1];
+    static int[] vstaviPolozajSlike(int[] zacetkiBesed, int zacetekSlike) {
+        int[] polozajElementov = new int[zacetkiBesed.length + 1];
+        boolean vstavljenaSlika = false;
+
+        for (int i = 0; i < zacetkiBesed.length; i++) {
+            if (zacetkiBesed[i] >= zacetekSlike && !vstavljenaSlika) {
+                polozajElementov[i] = zacetekSlike;
+                vstavljenaSlika = true;
+            }
+            polozajElementov[vstavljenaSlika ? i+1 : i] = zacetkiBesed[i];
+        }
+
+        if (!vstavljenaSlika) {
+            polozajElementov[zacetkiBesed.length] = zacetekSlike;
+        }
+
+        return polozajElementov;
+    }
+
+    static int[] zacetkiBesedIndex(char[] vrstica, int steviloBesed) {
+        int[] zacetkiBesed = new int[steviloBesed];
         int indeksBesede = 0;
 
-        for (int i = 1; i < vrstica.length(); i++) {
-            if (vrstica.charAt(i - 1) == '_' && vrstica.charAt(i) != '_') {
-                zacetkiBesed[indeksBesede++] = i - 1;
+        for (int i = 0; i < vrstica.length && indeksBesede < steviloBesed; i++) {
+            boolean zacetekBesede = vrstica[i] != '_' && (i == 0 || vrstica[i - 1] == '_');
+            if (zacetekBesede) {
+                zacetkiBesed[indeksBesede++] = i;
             }
         }
-        zacetkiBesed[steviloBesed] = -1;
 
         return zacetkiBesed;
     }
@@ -789,5 +784,31 @@ public class DN05 {
         }
 
         return rezultat.toString();
+    }
+
+    static String[] besedeVBuffer(String[] besedeBuffer, String novaBeseda) {
+        String[] noveBesedeBuffer = new String[besedeBuffer.length + 1];
+
+        for (int i = 0; i < besedeBuffer.length; i++) {
+            noveBesedeBuffer[i] = besedeBuffer[i];
+        }
+        noveBesedeBuffer[besedeBuffer.length] = novaBeseda;
+
+        return noveBesedeBuffer;
+    }
+
+    static String[] besedeVBuffer(String[] besedeBuffer, String novaBeseda, boolean naZacetek) {
+        if (!naZacetek) {
+            return besedeVBuffer(besedeBuffer, novaBeseda);
+        }
+
+        String[] noveBesedeBuffer = new String[besedeBuffer.length + 1];
+        noveBesedeBuffer[0] = novaBeseda;
+
+        for (int i = 0; i < besedeBuffer.length; i++) {
+            noveBesedeBuffer[i + 1] = besedeBuffer[i];
+        }
+
+        return noveBesedeBuffer;
     }
 }
