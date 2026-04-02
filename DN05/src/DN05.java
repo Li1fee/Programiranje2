@@ -92,8 +92,8 @@ public class DN05 {
             }
             return;
 
-        } else if (args.length == 4 && "navpicno".equals(args[3])) {
-            tabela = preberiUrejenoDatoteko(args[2]);
+        } else if (args.length == 2 && "navpicno".equals(args[1])) {
+            tabela = preberiUrejenoDatoteko(args[0]);
             if (tabela != null) {
                 char[][] rezultat = navpicnoBesedilo(tabela);
                 izpisRezultata(rezultat);
@@ -631,7 +631,6 @@ public class DN05 {
         int steviloVrstic = tabela.length;
         int dolzinaVrstice = tabela[0].length;
         char[][] res = new char[dolzinaVrstice][];
-        ArrayList<Integer> prostaMesta = new ArrayList<>();
 
 
         for (int i = 0; i < dolzinaVrstice; i++) {
@@ -644,31 +643,7 @@ public class DN05 {
             res[i] = vrstica.toString().toCharArray();
         }
 
-        for (int i = 1; i < res[0].length; i+=2) {
-            for (int j = 0; j < res.length; j++) {
-                if (res[j][i] != '_') {
-                    break;
-                } else if (res[j][Math.min(res[0].length - 1, i + 1)] != '_' && res[j][Math.max(0, i - 1)] != '_') {
-                    break;
-                } else if (j == res.length - 1) {
-                    prostaMesta.add(i);
-                }
-            }
-        }
-
-        char[][] finalRes = new char[res.length][];
-
-        for (int i = 0; i < res.length; i++) {
-            StringBuilder vrstica = new StringBuilder();
-            for (int j = 0; j < res[i].length; j++) {
-                if (!prostaMesta.contains(j)) {
-                    vrstica.append(res[i][j]);
-                }
-            }
-            finalRes[i] = vrstica.toString().toCharArray();
-        }
-
-        return finalRes;
+        return res;
     }
 
 
@@ -692,7 +667,6 @@ public class DN05 {
 
     static String besedeIzVrstice(char[] vrstica) {
         StringBuilder besedilo = new StringBuilder();
-        char prejsnaCrka = ' ';
         boolean novaBeseda = false;
 
         for (char c : vrstica) {
@@ -705,7 +679,6 @@ public class DN05 {
                     besedilo.append('_');
                 }
                 besedilo.append(c);
-                prejsnaCrka = c;
                 novaBeseda = false;
             }
         }
