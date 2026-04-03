@@ -603,7 +603,6 @@ public class DN05 {
     }
 
     static void izpisiStatistikeNizov(char[][] tabela, char[][] nizi) {
-        HashMap<String, ArrayList<int[]>> pozicijeBesed = new HashMap<>();
         int[][][] pozicijeBuffer = new int[nizi.length][0][];
         boolean najdelBesede = false;
 
