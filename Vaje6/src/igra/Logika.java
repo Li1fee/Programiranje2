@@ -8,7 +8,7 @@ public class Logika {
     static boolean konec;
     static Random rnd = new Random();
     static int velikostPolja;
-    static int maxVrenodst = 0;
+    static int maxVrenodst;
 
     public static void zacniNovoIgro(int velikost) {
         polja = new int[velikost][];
@@ -18,6 +18,7 @@ public class Logika {
             polja[i] = new int[velikost];
         }
         tocke = 0;
+        maxVrenodst = 0;
         konec = false;
 
         izbiranjePolja();
@@ -40,7 +41,11 @@ public class Logika {
     }
 
     public static boolean jeZmagal() {
-        return maxVrenodst >= 2048;
+        if (maxVrenodst >= 2048) {
+            konec = true;
+            return true;
+        }
+        return false;
     }
 
     public static boolean jeKonec() {

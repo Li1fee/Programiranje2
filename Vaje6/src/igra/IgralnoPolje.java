@@ -24,7 +24,7 @@ import javax.swing.JPanel;
  */
 public class IgralnoPolje extends JPanel {
 
-    private final static int STEVILO_POLJ = 4;     // velikost mreže, privzeto je 4 x 4
+    private final static int STEVILO_POLJ = 5;     // velikost mreže, privzeto je 4 x 4
     private final static int VELIKOST_GLAVE = 100; // višina dela za sporočila, kjer se izpisujejo točke (v pikslih)
     private final static int VELIKOST_POLJA = 80;  // velikost enega polja (v pikslih)
     private final static int ROB = 10;             // širina roba in razmik med dvemi polji (v pikslih)
