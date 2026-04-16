@@ -2,10 +2,7 @@ package vinjete;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class SeznamVinjet {
     private Vinjeta[] prodaneVinjete;
@@ -103,7 +100,7 @@ public class SeznamVinjet {
     }
 
     public void statistika() {
-        HashMap<String, HashMap<String, Integer>> razrediProdanost = new HashMap<>();
+        Map<String, HashMap<String, Integer>> razrediProdanost = new TreeMap<>();
 
         for (Vinjeta vinjeta : prodaneVinjete) {
             razrediProdanost.putIfAbsent(vinjeta.getRazred(), new HashMap<>());
@@ -111,7 +108,7 @@ public class SeznamVinjet {
             vrste.put(vinjeta.getVrsta(), vrste.getOrDefault(vinjeta.getVrsta(), 0) + 1);
         }
 
-        System.out.println("Največ prodanih vinjet po razredih.");
+        System.out.println("Največ prodanih vinjet po razredih:");
 
         for (String razred : razrediProdanost.keySet()) {
             ArrayList<String> vrsteImena = new ArrayList<>();
@@ -119,16 +116,16 @@ public class SeznamVinjet {
             int max = 0;
 
             for (Map.Entry<String, Integer> entry : vrste.entrySet()) {
-                if (entry.getValue() == max) {
-                    vrsteImena.add(entry.getKey());
-                }
-                if (entry.getValue() > max)  {
+                if (entry.getValue() > max) {
                     max = entry.getValue();
                     vrsteImena.clear();
                     vrsteImena.add(entry.getKey());
+                } else if (entry.getValue() == max && max > 0) {
+                    vrsteImena.add(entry.getKey());
                 }
             }
-            System.out.printf("-- Razred %s: %d (%s)\n", razred, max,  String.join(", ", vrsteImena));
+            vrsteImena.sort(null);
+            System.out.printf(" -- Razred %s: %d (%s)\n", razred, max, String.join(", ", vrsteImena));
         }
     }
 }
