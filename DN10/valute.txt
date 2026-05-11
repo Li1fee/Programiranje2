@@ -1,0 +1,17 @@
+F;evro;EUR;Evropska unija
+F;ameriški dolar;USD;Združene države Amerike
+
+K;bitcoin;BTC;SHA-256;19688000
+K;ethereum;ETH;Ethash;120070000
+F;mehiški peso;MXN
+F;japonski jen;JPY;Japonska
+N;litecoin;LTC;Scrypt;74410000
+F;švicarski frank;CHF;Švica
+
+F;britanski funt;GBP;Združeno kraljestvo
+K;litecoin;LTC;Scrypt;74410000
+K;ethereum;ETH;SHA-256;10
+K;cardano;ADA;Ouroboros;35620000000
+
+K;solana;SOL;SHA-256;446800000
+F;Schweizer Franken;CHF;Schweiz

@@ -1,0 +1,11 @@
+Na borzi 'Temna borza' so naslednje valute (10):
+ - EUR (Fiat/Državna; Evropska unija; evro)
+ - USD (Fiat/Državna; Združene države Amerike; ameriški dolar)
+ - BTC (Kripto/Blockchain; SHA-256 [BTC00SHA-256]; bitcoin)
+ - ETH (Kripto/Blockchain; Ethash [ETH00Ethash]; ethereum)
+ - JPY (Fiat/Državna; Japonska; japonski jen)
+ - CHF (Fiat/Državna; Švica; švicarski frank)
+ - GBP (Fiat/Državna; Združeno kraljestvo; britanski funt)
+ - LTC (Kripto/Blockchain; Scrypt [LTC00Scrypt]; litecoin)
+ - ADA (Kripto/Blockchain; Ouroboros [ADA00Ouroboros]; cardano)
+ - SOL (Kripto/Blockchain; SHA-256 [SOL00SHA-256]; solana)
