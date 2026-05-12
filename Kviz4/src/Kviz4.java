@@ -98,4 +98,43 @@ public class Kviz4 {
             return;
         }
     }
+
+    static void statistikaStavkov(String imeDatoteke) throws IzjemaManjkajocegaLocila {
+        java.util.TreeMap<Integer, Integer> frekvenca = new java.util.TreeMap<>();
+        int dolzinaTrenutnegaStavka = 0;
+        boolean koncanoZLocilom = true;
+
+        try (java.util.Scanner sc = new java.util.Scanner(new java.io.File(imeDatoteke))) {
+
+            while (sc.hasNext()) {
+                String beseda = sc.next();
+                koncanoZLocilom = false;
+                dolzinaTrenutnegaStavka++;
+
+                if (beseda.matches(".*[.!?]")) {
+                    frekvenca.put(dolzinaTrenutnegaStavka, frekvenca.getOrDefault(dolzinaTrenutnegaStavka, 0) + 1);
+                    dolzinaTrenutnegaStavka = 0;
+                    koncanoZLocilom = true;
+                }
+
+            }
+
+            if (!koncanoZLocilom && dolzinaTrenutnegaStavka > 0) {
+                throw new IzjemaManjkajocegaLocila("Izjema manjkajocega locila.");
+            }
+
+            for (java.util.Map.Entry<Integer, Integer> f : frekvenca.entrySet()) {
+                System.out.printf("Stavki dolzine %d se pojavijo: %dx.\n", f.getKey(), f.getValue());
+            }
+        } catch (java.io.FileNotFoundException e) {
+            System.out.printf("Napaka pri branju datoteke.");
+            return;
+        }
+    }
+
+    static class IzjemaManjkajocegaLocila extends java.lang.RuntimeException {
+        public IzjemaManjkajocegaLocila(String sporocilo) {
+            super(sporocilo);
+        }
+    }
 }
