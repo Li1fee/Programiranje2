@@ -50,7 +50,7 @@ public class Kviz4 {
     }
 
     void poisciInIzpisiBarve(String imeDatoteke) {
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("((?<!\\S)color:\\s*#([0-9a-fA-F]{6})");
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(?<!\\S)color:\\s*#([0-9a-fA-F]{6})");
 
         try (java.util.Scanner sc = new java.util.Scanner(new java.io.File(imeDatoteke))) {
             while (sc.hasNextLine()) {
