@@ -1,15 +1,13 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Kviz4 {
     public static void main(String[] args) {
         System.out.println(Arrays.toString(getVrstica(11)));
+        izpisiBesedilo("src/test.txt", 20, 30);
     }
 
     void dvojnaNagrada(String igralkeFilename, String igralciFilename) {
@@ -179,18 +177,56 @@ public class Kviz4 {
     static int[] getVrstica(int n) {
         int[][] vrstica = new int[n][];
 
-        for (int i = 1; i <= n; i++) {
-            int[] novaVrstica = new int[i];
-            for (int j = 0; j < i; j++) {
+        for (int i = 0; i < n; i++) {
+            int[] novaVrstica = new int[i + 1];
+            for (int j = 0; j <= i; j++) {
                 if (j == 0) {
-                    novaVrstica[j] = i % 10;
+                    novaVrstica[j] = (i + 1) % 10;
                 } else {
-                    novaVrstica[j] = (novaVrstica[j - 1] + vrstica[i - 2][j - 1]) % 10;
+                    novaVrstica[j] = (novaVrstica[j - 1] + vrstica[i - 1][j - 1]) % 10;
                 }
             }
-            vrstica[i - 1] = novaVrstica;
+            vrstica[i] = novaVrstica;
         }
 
         return vrstica[n - 1];
+    }
+
+    static void izpisiBesedilo(String imeDatoteke, int n, int s) {
+        int i = 0;
+        StringBuilder vrstica = new StringBuilder();
+        java.util.ArrayList<String> besede = new java.util.ArrayList<>();
+
+
+        try (java.util.Scanner sc = new java.util.Scanner(new java.io.File(imeDatoteke))) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                besede.addAll(java.util.Arrays.asList(line.split("\\s")));
+            }
+
+
+            while (i < besede.size()) {
+                String beseda = besede.get(i);
+                if (beseda.length() > n) break;
+
+                if (vrstica.isEmpty()) {
+                    vrstica.append(beseda);
+                    i++;
+                } else if (vrstica.length() + beseda.length() + 1 <= n) {
+                    vrstica.append(" ").append(beseda);
+                    i++;
+                } else {
+                    int dolzinaVrstice = vrstica.length();
+                    System.out.printf("%s%s%s\n", ".".repeat((s - dolzinaVrstice) / 2), vrstica, ".".repeat((s - dolzinaVrstice) / 2 + ((s - dolzinaVrstice) % 2)));
+                    vrstica.setLength(0);
+                }
+            }
+            int dolzinaVrstice = vrstica.length();
+            System.out.printf("%s%s%s\n", ".".repeat((s - dolzinaVrstice) / 2), vrstica, ".".repeat((s - dolzinaVrstice) / 2 + ((s - dolzinaVrstice) % 2)));;
+
+        } catch (java.io.FileNotFoundException e) {
+            System.out.println("Napaka pri branju datoteke!\n");
+            return;
+        }
     }
 }
