@@ -137,4 +137,34 @@ public class Kviz4 {
             super(sporocilo);
         }
     }
+
+    static void preberiRacunInIzpisi(String imeDatoteke) {
+        double skupniDDV = 0;
+        double skupniZnesek = 0;
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("([0-9]). ([a-zA-Z])");
+
+        try (java.util.Scanner sc = new java.util.Scanner(new java.io.File(imeDatoteke))) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                java.util.regex.Matcher matcher = pattern.matcher(line);
+                String[] lineSplited = line.split("\\s");
+
+                if (!matcher.find() || lineSplited.length < 4) continue;
+
+                double znesek = Double.parseDouble(lineSplited[lineSplited.length - 1].replace(",", "."));
+                double ddv = Double.parseDouble(lineSplited[lineSplited.length - 2].replace(",", "."));
+
+                skupniZnesek += znesek;
+                skupniDDV += ddv;
+            }
+            System.out.printf("Skupaj brez DDV:%7.2f\n" +
+                    "DDV:%19.2f\n" +
+                    "ZNESEK SKUPAJ:%9.2f\n"
+                    ,skupniZnesek - skupniDDV, skupniDDV, skupniZnesek);
+
+        } catch (java.io.FileNotFoundException e) {
+            System.out.println("Napaka pri branju datoteke!\n");
+            return;
+        }
+    }
 }
