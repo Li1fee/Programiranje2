@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class Kviz4 {
     public static void main(String[] args) {
-
+        System.out.println(Arrays.toString(getVrstica(11)));
     }
 
     void dvojnaNagrada(String igralkeFilename, String igralciFilename) {
@@ -166,5 +166,31 @@ public class Kviz4 {
             System.out.println("Napaka pri branju datoteke!\n");
             return;
         }
+    }
+
+    void izpisi(String imeDatoteke) {
+
+    }
+
+    void preveri(String stevilka, String imeDatoteke) {
+
+    }
+
+    static int[] getVrstica(int n) {
+        int[][] vrstica = new int[n][];
+
+        for (int i = 1; i <= n; i++) {
+            int[] novaVrstica = new int[i];
+            for (int j = 0; j < i; j++) {
+                if (j == 0) {
+                    novaVrstica[j] = i % 10;
+                } else {
+                    novaVrstica[j] = (novaVrstica[j - 1] + vrstica[i - 2][j - 1]) % 10;
+                }
+            }
+            vrstica[i - 1] = novaVrstica;
+        }
+
+        return vrstica[n - 1];
     }
 }
