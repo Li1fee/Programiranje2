@@ -30,6 +30,6 @@ public class DN09 {
 
         System.out.println();
 
-        borza.izrisiGraf("ACC1007");
+        borza.izrisiGraf("ACC1001");
     }
 }

@@ -233,28 +233,19 @@ public class Borza {
     public void izrisiGraf(String idDenarnice) {
         ustvariGraf();
         Set<String> dosegljive = poisciCiljneDenarnice(idDenarnice);
-//        dosegljive.add(idDenarnice);
         Set<String> vsaVozlisca = pridobiVsaVozlisca();
         Map<String, double[]> koordinate = razporediVozlisca(vsaVozlisca);
-
-        System.out.println(vsaVozlisca.size());
-        System.out.println(dosegljive.size());
-        System.out.println(dosegljive);
 
         StdDraw.clear();
 
         StdDraw.setCanvasSize(800, 800);
         StdDraw.clear(StdDraw.WHITE);
 
-        // Najprej povezave
         for (String izvor : graf.keySet()) {
             for (String cilj : graf.get(izvor)) {
                 double[] s = koordinate.get(izvor);
                 double[] k = koordinate.get(cilj);
 
-                // LOGIKA BARVANJA:
-                // Če je izvorna denarnica tista iz parametra ALI dosegljiva,
-                // in je cilj dosegljiv, potem je to del poti.
                 if ((izvor.equals(idDenarnice) || dosegljive.contains(izvor)) && dosegljive.contains(cilj)) {
                     StdDraw.setPenColor(StdDraw.CYAN);
                 } else {
@@ -265,11 +256,9 @@ public class Borza {
             }
         }
 
-        // Nato vozlišča
         for (String v : vsaVozlisca) {
             double[] p = koordinate.get(v);
 
-            // Barva kroga
             if (v.equals(idDenarnice) || dosegljive.contains(v)) {
                 StdDraw.setPenColor(StdDraw.CYAN);
             } else {
@@ -278,8 +267,8 @@ public class Borza {
             StdDraw.setPenRadius(0.005);
             StdDraw.filledCircle(p[0], p[1], 0.05);
             StdDraw.setPenColor(StdDraw.BLACK);
-            StdDraw.circle(p[0], p[1], 0.05); // Obroba
-            StdDraw.text(p[0], p[1], v);      // Ime denarnice
+            StdDraw.circle(p[0], p[1], 0.05);
+            StdDraw.text(p[0], p[1], v);
         }
     }
 
