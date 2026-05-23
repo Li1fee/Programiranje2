@@ -57,5 +57,3 @@ public class CezarjevAlgoritemTest {
         assertEquals(Integer.MIN_VALUE, alg.odkodiraj(Integer.MIN_VALUE + 1));
     }
 }
-
-// 311.898.787
