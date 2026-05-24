@@ -8,7 +8,7 @@ public class DN10 {
         double kotStopinje = 60.0;
         double kotRadiani = Math.toRadians(kotStopinje);
 
-        int[][] originPoints = new int[][]{{100, 100}, {800, 100}, {450, 706}};
+        Tocka[] originPoints = new Tocka[]{new Tocka(100, 100), new Tocka(800, 100), new Tocka(450, 706)};
 
         StdDraw.setCanvasSize(900, 800);
         StdDraw.setXscale(0, 900);
@@ -16,9 +16,9 @@ public class DN10 {
 
         StdDraw.setPenColor(Color.RED);
         StdDraw.setPenRadius(0.01);
-        StdDraw.point(originPoints[0][0], originPoints[0][1]);
-        StdDraw.point(originPoints[1][0], originPoints[1][1]);
-        StdDraw.point(originPoints[2][0], originPoints[2][1]);
+        StdDraw.point(originPoints[0].getX(), originPoints[0].getY());
+        StdDraw.point(originPoints[1].getX(), originPoints[1].getY());
+        StdDraw.point(originPoints[2].getX(), originPoints[2].getY());
 
 
         int x = rng.nextInt(1, 350);
@@ -32,19 +32,21 @@ public class DN10 {
         }
         x += 100;
 
-        int[] randomPoint = new int[]{x, y};
+        Tocka randomPoint = new Tocka(x, y);
 
         for (int i = 0; i < 10000; i++) {
-            int[] randomOriginPoint = originPoints[rng.nextInt(0, 3)];
+            Tocka randomOriginPoint = originPoints[rng.nextInt(0, 3)];
 
-            int novX = (randomPoint[0] + randomOriginPoint[0]) / 2;
-            int novY = (randomPoint[1] + randomOriginPoint[1]) / 2;
-
-            randomPoint = new int[]{novX, novY};
+            randomPoint = sredinskaPozicija(randomPoint, randomOriginPoint);
 
             StdDraw.setPenColor(Color.black);
             StdDraw.setPenRadius(0.008);
-            StdDraw.point(randomPoint[0], randomPoint[1]);
+            StdDraw.point(randomPoint.getX(), randomPoint.getY());
         }
+    }
+
+    private static Tocka sredinskaPozicija(Tocka t1, Tocka t2) {
+        return new Tocka((t1.getX() + t2.getX()) / 2,
+                        (t1.getY() + t2.getY()) / 2);
     }
 }
