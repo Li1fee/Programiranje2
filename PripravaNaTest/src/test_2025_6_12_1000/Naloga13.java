@@ -1,4 +1,4 @@
-package test_2025_12_6_1000;
+package test_2025_6_12_1000;
 
 import java.io.File;
 import java.io.FileNotFoundException;
