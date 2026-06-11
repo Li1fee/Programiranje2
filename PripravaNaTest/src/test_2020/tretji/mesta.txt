@@ -1,0 +1,3 @@
+AUT;Dunaj;1691468
+ITA;Rim;2318895
+SLO;Ljubljana;272220

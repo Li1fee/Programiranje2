@@ -1,0 +1,39 @@
+Ljubljana;295000
+Maribor;98000
+Celje;38000
+Kranj;38000
+Novo mesto;24000
+Koper;26000
+Nova Gorica;13000
+Murska Sobota;11000
+Ptuj;18000
+Velenje;25000
+Jesenice;13000
+Postojna;9500
+Trbovlje;14000
+Slovenj Gradec;7600
+Brežice;7000
+
+Ljubljana;Kranj
+Ljubljana;Celje
+Ljubljana;Novo mesto
+Ljubljana;Postojna
+Kranj;Jesenice
+Kranj;Celje
+Celje;Velenje
+Celje;Trbovlje
+Celje;Maribor
+Maribor;Ptuj
+Maribor;Murska Sobota
+Ptuj;Brežice
+Novo mesto;Brežice
+Novo mesto;Celje
+Postojna;Koper
+Postojna;Nova Gorica
+Nova Gorica;Koper
+Velenje;Slovenj Gradec
+Slovenj Gradec;Maribor
+Jesenice;Ljubljana
+Brežice;Ljubljana
+Murska Sobota;Ptuj
+Koper;Ljubljana

@@ -1,0 +1,3 @@
+SLO;Slovenija;2078938
+AUT;Avstrija;9003627
+ITA;Italija;60461826

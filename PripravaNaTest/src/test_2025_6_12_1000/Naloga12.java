@@ -51,3 +51,17 @@ public class Naloga12 {
         System.out.println("Postavitev je pravilna");
     }
 }
+
+class MnozicaZnakov extends TreeSet<Character> {
+    Set<Character> seen = new HashSet<>();
+
+    public boolean add(Character c) {
+        if (!"1234567890".contains(String.valueOf(c)) || seen.contains(c)) {
+            return false;
+        } else if (c != '0') {
+            seen.add(c);
+            super.add(c);
+        }
+        return true;
+    }
+}
